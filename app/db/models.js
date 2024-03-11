@@ -2,13 +2,19 @@
 import userModel from "./models/user.model.js";
 import productModel from "./models/product.model.js";
 import categoryModel from "./models/category.model.js";
-import bannerModel from "./models/banner.model.js";
 import brandModel from "./models/brand.model.js";
+import orderModel from "./models/order.model.js";
+import orderItemModel from "./models/order-item.model.js";
+import tempCartModel from "./models/temp-cart.model.js";
+import queryModel from "./models/query.model.js";
 
 export default {
   UserModel: userModel,
   ProductModel: productModel,
   CategoryModel: categoryModel,
-  BannerModel: bannerModel,
   BrandModel: brandModel,
+  OrderModel: orderModel,
+  OrderItemModel: orderItemModel,
+  TempCartModel: tempCartModel,
+  QueryModel: queryModel,
 };

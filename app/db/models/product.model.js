@@ -15,36 +15,21 @@ const init = async (sequelize) => {
         defaultValue: DataTypes.UUIDV4,
         unique: true,
       },
-      title: {
-        type: DataTypes.STRING,
-        allowNull: false,
-      },
+      title: { type: DataTypes.STRING, allowNull: false },
       slug: {
         type: DataTypes.TEXT,
         allowNull: false,
         unique: true,
       },
-      description: {
-        type: DataTypes.TEXT,
-        allowNull: false,
-      },
-      pictures: {
-        type: DataTypes.ARRAY(DataTypes.TEXT),
-        default: [],
-      },
-      tags: {
-        type: DataTypes.ARRAY(DataTypes.STRING),
-        default: [],
-      },
+      description: { type: DataTypes.TEXT, allowNull: false },
+      pictures: { type: DataTypes.ARRAY(DataTypes.TEXT), default: [] },
+      tags: { type: DataTypes.ARRAY(DataTypes.STRING), default: [] },
       type: {
         type: DataTypes.ENUM,
         values: ["genuine", "aftermarket", "oem"],
         allowNull: false,
       },
-      sku: {
-        type: DataTypes.STRING,
-        allowNull: false,
-      },
+      sku: { type: DataTypes.STRING, allowNull: false },
       brand_id: {
         type: DataTypes.UUID,
         allowNull: false,
@@ -68,27 +53,15 @@ const init = async (sequelize) => {
         type: DataTypes.ENUM("published", "draft", "pending"),
         defaultValue: "pending",
       },
-      is_featured: {
-        type: DataTypes.BOOLEAN,
-        deafaultValue: false,
-      },
+      is_featured: { type: DataTypes.BOOLEAN, deafaultValue: false },
       related_products: {
         type: DataTypes.ARRAY(DataTypes.UUID),
         deafaultValue: [],
       },
-      meta_title: {
-        type: DataTypes.STRING,
-        allowNull: false,
-      },
-      meta_description: {
-        type: DataTypes.TEXT,
-        allowNull: false,
-      },
+      meta_title: { type: DataTypes.STRING, allowNull: false },
+      meta_description: { type: DataTypes.TEXT, allowNull: false },
     },
-    {
-      createdAt: "created_at",
-      updatedAt: "updated_at",
-    }
+    { createdAt: "created_at", updatedAt: "updated_at" }
   );
 
   await ProductModel.sync({ alter: true });
@@ -117,15 +90,24 @@ const create = async (req) => {
 const get = async (req) => {
   let whereQuery = ``;
 
+  if (req.query.type) {
+    whereQuery = `WHERE prd.type = '${req.query.type}'`;
+  }
+
+  if (req.query.featured) {
+    whereQuery = `WHERE prd.is_featured = true`;
+  }
+
   let query = `
-        SELECT
-          prd.*,
-          cat.name as category_name
-        FROM
-          products prd
-        LEFT JOIN categories cat ON cat.id = prd.category_id
-        ${whereQuery};
-`;
+    SELECT
+      prd.*,
+      cat.name as category_name
+    FROM
+      products prd
+      LEFT JOIN categories cat ON cat.id = prd.category_id
+      ${whereQuery};
+  `;
+
   return await ProductModel.sequelize.query(query, {
     type: QueryTypes.SELECT,
     raw: true,
@@ -177,12 +159,17 @@ const getById = async (req, id) => {
 const getBySlug = async (req, slug) => {
   let query = `
       SELECT
-        prd.*,
-        cat.name as category_name
+        prd.id, prd.title, prd.slug, prd.description, prd.pictures, prd.tags, prd.type, prd.sku, prd.brand_id, prd.category_id, prd.status, 
+        prd.is_featured, prd.meta_title, prd.meta_description, prd.created_at, prd.updated_at, cat.name as category_name,
+        json_agg(rp.*) as related_products
       FROM
         products prd
       LEFT JOIN categories cat ON cat.id = prd.category_id
-      WHERE prd.slug = '${req.params.slug || slug}';
+      LEFT JOIN products rp ON prd.id = ANY(rp.related_products)
+      WHERE prd.slug = '${req.params.slug || slug}'
+      GROUP BY
+        prd.id, prd.title, prd.slug, prd.description, prd.pictures, prd.tags, prd.type, prd.sku, prd.brand_id, prd.category_id, prd.status, 
+        prd.is_featured, prd.meta_title, prd.meta_description, prd.created_at, prd.updated_at, cat.name;
 `;
   return await ProductModel.sequelize.query(query, {
     type: QueryTypes.SELECT,
@@ -190,23 +177,117 @@ const getBySlug = async (req, slug) => {
   });
 };
 
+const getByCategory = async (req, slug) => {
+  let threshold = "";
+  const page = !req?.query?.page
+    ? null
+    : req?.query?.page < 1
+    ? 1
+    : req?.query?.page;
+
+  const limit = !req?.query?.limit
+    ? null
+    : req?.query?.limit
+    ? req?.query?.limit
+    : 10;
+
+  if (page && limit) {
+    const offset = (page - 1) * limit;
+    threshold = `LIMIT '${limit}' OFFSET '${offset}'`;
+  }
+
+  let query = `
+    SELECT
+      prd.*,
+      cat.name as category_name
+    FROM
+      products prd
+      LEFT JOIN categories cat ON cat.id = prd.category_id
+      WHERE cat.slug = '${slug}'
+      ${threshold}
+  `;
+
+  const products = await ProductModel.sequelize.query(query, {
+    type: QueryTypes.SELECT,
+    raw: true,
+  });
+
+  const { total } = await ProductModel.sequelize.query(
+    `SELECT COUNT(id) AS total FROM products;`,
+    {
+      type: QueryTypes.SELECT,
+      plain: true,
+    }
+  );
+
+  return {
+    products,
+    total_page: Math.ceil(Number(total) / Number(limit)),
+    page: page,
+  };
+};
+
+const getByBrand = async (req, slug) => {
+  let threshold = "";
+  const page = !req?.query?.page
+    ? null
+    : req?.query?.page < 1
+    ? 1
+    : req?.query?.page;
+
+  const limit = !req?.query?.limit
+    ? null
+    : req?.query?.limit
+    ? req?.query?.limit
+    : 10;
+
+  if (page && limit) {
+    const offset = (page - 1) * limit;
+    threshold = `LIMIT '${limit}' OFFSET '${offset}'`;
+  }
+
+  let query = `
+    SELECT
+      prd.*,
+      brd.name as brand_name
+    FROM
+      products prd
+      LEFT JOIN brands brd ON brd.id = prd.brand_id
+      WHERE brd.slug = '${slug}'
+      ${threshold}
+  `;
+
+  const products = await ProductModel.sequelize.query(query, {
+    type: QueryTypes.SELECT,
+    raw: true,
+  });
+
+  const { total } = await ProductModel.sequelize.query(
+    `SELECT COUNT(id) AS total FROM products;`,
+    {
+      type: QueryTypes.SELECT,
+      plain: true,
+    }
+  );
+
+  return {
+    products,
+    total_page: Math.ceil(Number(total) / Number(limit)),
+    page: page,
+  };
+};
+
 const deleteById = async (req, id) => {
   return await ProductModel.destroy({
-    where: {
-      id: req.params.id || id,
-    },
+    where: { id: req.params.id || id },
   });
 };
 
 const publishProductById = async (id, value) => {
   const [rowCount, rows] = await ProductModel.update(
+    { status: value },
     {
-      status: value,
-    },
-    {
-      where: {
-        id: id,
-      },
+      where: { id: id },
       returning: true,
       plain: true,
       raw: true,
@@ -214,6 +295,31 @@ const publishProductById = async (id, value) => {
   );
 
   return rows;
+};
+
+const searchProducts = async (req) => {
+  const q = req.query.q.split("-").join(" ");
+  if (!q) return [];
+
+  const query = `
+    SELECT 
+      p.id, p.title, p.pictures, p.slug, p.tags
+    FROM products AS p
+    WHERE 
+      p.title ILIKE '%${q}%' 
+      OR '%${q}%' = ANY(p.tags) 
+      OR EXISTS (
+        SELECT 1 
+        FROM unnest(p.tags) AS tag 
+        WHERE tag ILIKE '%${q}%'
+      )
+  `;
+
+  // Fetch templates and categories based on the search term
+  return await ProductModel.sequelize.query(query, {
+    type: QueryTypes.SELECT,
+    raw: true,
+  });
 };
 
 export default {
@@ -225,4 +331,7 @@ export default {
   getBySlug: getBySlug,
   deleteById: deleteById,
   publishProductById: publishProductById,
+  getByCategory: getByCategory,
+  getByBrand: getByBrand,
+  searchProducts: searchProducts,
 };

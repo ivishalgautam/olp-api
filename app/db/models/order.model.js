@@ -1,0 +1,155 @@
+"use strict";
+import constants from "../../lib/constants/index.js";
+import sequelizeFwk from "sequelize";
+
+const { DataTypes, QueryTypes, Deferrable } = sequelizeFwk;
+
+let OrderModel = null;
+
+const init = async (sequelize) => {
+  OrderModel = sequelize.define(
+    constants.models.ORDER_TABLE,
+    {
+      id: {
+        primaryKey: true,
+        allowNull: false,
+        type: DataTypes.STRING,
+        unique: true,
+      },
+      user_id: {
+        type: DataTypes.UUID,
+        allowNull: false,
+        onDelete: "CASCADE",
+        references: {
+          model: constants.models.USER_TABLE,
+          key: "id",
+          deferrable: Deferrable.INITIALLY_IMMEDIATE,
+        },
+      },
+      status: {
+        type: DataTypes.ENUM(
+          "pending",
+          "partially_dispatched",
+          "dispatched",
+          "cancelled",
+          "completed"
+        ),
+        defaultValue: "pending",
+      },
+    },
+    {
+      createdAt: "created_at",
+      updatedAt: "updated_at",
+    }
+  );
+
+  await OrderModel.sync({ alter: true });
+};
+
+const create = async ({ order_id, user_id }) => {
+  console.log({ order_id, user_id });
+  return await OrderModel.create(
+    {
+      id: order_id,
+      user_id: user_id,
+    },
+    {
+      returning: true,
+      plain: true,
+      raw: true,
+    }
+  );
+};
+
+const get = async (req) => {
+  const query = `
+  SELECT
+      o.*,
+      CONCAT(usr.first_name, ' ', usr.last_name) as customer_name,
+      usr.email,
+      usr.mobile_number
+    FROM orders o
+    LEFT JOIN users usr ON usr.id = o.user_id
+  `;
+
+  return await OrderModel.sequelize.query(query, {
+    type: QueryTypes.SELECT,
+    raw: true,
+  });
+};
+
+const update = async (req, id) => {
+  const [rowCount, rows] = await OrderModel.update(
+    {
+      status: req.body.status,
+    },
+    {
+      where: {
+        id: req.params.id || id,
+      },
+      returning: true,
+      raw: true,
+      plain: true,
+    }
+  );
+
+  return rows;
+};
+
+const getById = async (req, id) => {
+  return await OrderModel.findOne({
+    where: {
+      id: req.params.id || id,
+    },
+  });
+};
+
+const getByOrderId = async (order_id) => {
+  const query = `
+  SELECT
+      o.id,
+      o.user_id,
+      o.status,
+      json_agg(json_build_object(
+        'id', oi.id,
+        'order_id', oi.order_id,
+        'product_id', oi.product_id,
+        'quantity', oi.quantity,
+        'dispatched_quantity', oi.dispatched_quantity,
+        'comment', oi.comment,
+        'status', oi.status,
+        'title', prd.title,
+        'pictures', prd.pictures
+      )) as items
+    FROM orders o
+    LEFT JOIN order_items oi ON oi.order_id = o.id
+    LEFT JOIN products prd ON prd.id = oi.product_id
+    WHERE o.id = '${order_id}'
+    GROUP BY
+        o.id,
+        o.user_id,
+        o.status
+  `;
+
+  return await OrderModel.sequelize.query(query, {
+    type: QueryTypes.SELECT,
+    raw: true,
+    plain: true,
+  });
+};
+
+const deleteById = async (req, id) => {
+  return await OrderModel.destroy({
+    where: { id: req.params.id || id },
+  });
+};
+
+export default {
+  init: init,
+  create: create,
+  get: get,
+  update: update,
+  getById: getById,
+  getByOrderId: getByOrderId,
+  deleteById: deleteById,
+};

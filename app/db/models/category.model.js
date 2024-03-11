@@ -1,6 +1,7 @@
 "use strict";
 import constants from "../../lib/constants/index.js";
 import sequelizeFwk from "sequelize";
+const { DataTypes } = sequelizeFwk;
 
 let CategoryModel = null;
 
@@ -11,22 +12,23 @@ const init = async (sequelize) => {
       id: {
         primaryKey: true,
         allowNull: false,
-        type: sequelizeFwk.DataTypes.UUID,
-        defaultValue: sequelizeFwk.DataTypes.UUIDV4,
+        type: DataTypes.UUID,
+        defaultValue: DataTypes.UUIDV4,
         unique: true,
       },
       name: {
-        type: sequelizeFwk.DataTypes.STRING,
+        type: DataTypes.STRING,
         allowNull: false,
       },
       slug: {
-        type: sequelizeFwk.DataTypes.STRING,
+        type: DataTypes.STRING,
         allowNull: false,
       },
       image: {
-        type: sequelizeFwk.DataTypes.TEXT,
+        type: DataTypes.TEXT,
         allowNull: false,
       },
+      is_featured: { type: DataTypes.BOOLEAN, deafaultValue: false },
     },
     {
       createdAt: "created_at",
@@ -42,11 +44,19 @@ const create = async (req) => {
     name: req.body.name,
     image: req.body.image,
     slug: req.body.slug,
+    is_featured: req.body.is_featured,
   });
 };
 
 const get = async (req) => {
+  let whereClause = "";
+
+  if (req.query.featured) {
+    whereClause = { where: { is_featured: true } };
+  }
+
   return await CategoryModel.findAll({
+    ...whereClause,
     order: [["created_at", "DESC"]],
   });
 };
@@ -57,6 +67,7 @@ const update = async (req, id) => {
       name: req.body.name,
       image: req.body.image,
       slug: req.body.slug,
+      is_featured: req.body.is_featured,
     },
     {
       where: {

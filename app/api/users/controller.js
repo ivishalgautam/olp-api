@@ -25,12 +25,39 @@ const create = async (req, res) => {
 
 const update = async (req, res) => {
   try {
+    console.log(req.body);
     const record = await table.UserModel.getById(req);
     if (!record) {
       return res.code(404).send({ message: "User not exists" });
     }
 
-    return res.send(await table.UserModel.update(req));
+    const user = await table.UserModel.update(req);
+
+    if (user && req.body.password) {
+      req.body.new_password = req.body.password;
+      await table.UserModel.updatePassword(req, req.user_data.id);
+    }
+    return res.send("Updated");
+  } catch (error) {
+    console.error(error);
+    return res.send(error);
+  }
+};
+
+const updateStatus = async (req, res) => {
+  try {
+    console.log(req.body);
+    const record = await table.UserModel.getById(req);
+    if (!record) {
+      return res.code(404).send({ message: "User not exists" });
+    }
+    const data = await table.UserModel.updateStatus(
+      req.params.id,
+      req.body.blocked
+    );
+    res.send({
+      message: data?.blocked ? "Customer blocked." : "Customer unblocked.",
+    });
   } catch (error) {
     console.error(error);
     return res.send(error);
@@ -160,4 +187,5 @@ export default {
   updatePassword: updatePassword,
   getUser: getUser,
   resetPassword: resetPassword,
+  updateStatus: updateStatus,
 };

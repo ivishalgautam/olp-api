@@ -85,6 +85,44 @@ const getBySlug = async (req, res) => {
   }
 };
 
+const getByCategory = async (req, res) => {
+  try {
+    const record = await table.CategoryModel.getBySlug(req, req.params.slug);
+
+    if (!record) {
+      return res.code(NOT_FOUND).send({ message: "Category not found!" });
+    }
+
+    const { products, total_page, page } =
+      await table.ProductModel.getByCategory(req, req.params.slug);
+
+    res.send({ page, total_page, data: products });
+  } catch (error) {
+    console.error(error);
+    res.code(INTERNAL_SERVER_ERROR).send(error);
+  }
+};
+
+const getByBrand = async (req, res) => {
+  try {
+    const record = await table.BrandModel.getBySlug(req, req.params.slug);
+
+    if (!record) {
+      return res.code(NOT_FOUND).send({ message: "Brand not found!" });
+    }
+
+    const { products, total_page, page } = await table.ProductModel.getByBrand(
+      req,
+      req.params.slug
+    );
+
+    res.send({ page, total_page, data: products });
+  } catch (error) {
+    console.error(error);
+    res.code(INTERNAL_SERVER_ERROR).send(error);
+  }
+};
+
 const getById = async (req, res) => {
   try {
     const record = await table.ProductModel.getById(req, req.params.id);
@@ -157,6 +195,16 @@ const publishProductById = async (req, res) => {
   }
 };
 
+const searchProducts = async (req, res) => {
+  try {
+    const data = await table.ProductModel.searchProducts(req);
+    res.send(data);
+  } catch (error) {
+    console.error(error);
+    res.code(INTERNAL_SERVER_ERROR).send(error);
+  }
+};
+
 export default {
   create: create,
   get: get,
@@ -164,5 +212,8 @@ export default {
   deleteById: deleteById,
   getBySlug: getBySlug,
   getById: getById,
+  getByCategory: getByCategory,
+  getByBrand: getByBrand,
   publishProductById: publishProductById,
+  searchProducts: searchProducts,
 };

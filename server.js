@@ -12,6 +12,9 @@ import routes from "./app/routes/v1/index.js";
 import uploadFileRoutes from "./app/api/upload_files/routes.js";
 import productController from "./app/api/products/controller.js";
 import categoriesController from "./app/api/categories/controller.js";
+import brandsController from "./app/api/brand/controller.js";
+import queryController from "./app/api/query/controller.js";
+import { querySchema } from "./app/api/query/routes.js";
 /*
     Register External packages, routes, database connection
 */
@@ -28,7 +31,25 @@ export default (app) => {
   // Increase the payload size limit
   app.register(routes, { prefix: "v1" });
   app.register(authRoutes, { prefix: "v1/auth" });
+
+  // products
   app.get("/v1/products", {}, productController.get);
+  app.get("/v1/products/:slug", {}, productController.getBySlug);
+  app.get(
+    "/v1/products/getByCategory/:slug",
+    {},
+    productController.getByCategory
+  );
+  app.get("/v1/products/getByBrand/:slug", {}, productController.getByBrand);
+  app.get("/v1/products/search", {}, productController.searchProducts);
+
+  // categories
   app.get("/v1/categories", {}, categoriesController.get);
+
+  // brand
+  app.get("/v1/brands", {}, brandsController.get);
   app.register(uploadFileRoutes, { prefix: "v1/upload" });
+
+  // query
+  app.post("/v1/queries", querySchema, queryController.create);
 };

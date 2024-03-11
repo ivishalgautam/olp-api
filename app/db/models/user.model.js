@@ -51,7 +51,7 @@ const init = async (sequelize) => {
         defaultValue: "user",
       },
       birth_date: {
-        type: sequelizeFwk.DataTypes.DATE,
+        type: sequelizeFwk.DataTypes.DATEONLY,
       },
       is_verified: {
         type: sequelizeFwk.DataTypes.BOOLEAN,
@@ -93,6 +93,7 @@ const create = async (req) => {
 
 const get = async () => {
   return await UserModel.findAll({
+    where: { role: "user" },
     attributes: {
       exclude: ["password", "reset_password_token", "confirmation_token"],
     },
@@ -135,14 +136,14 @@ const getByUsername = async (req, record = undefined) => {
 const update = async (req) => {
   return await UserModel.update(
     {
-      email: req.body?.email,
+      username: req.body?.username,
       first_name: req.body?.first_name,
       last_name: req.body?.last_name,
-      role: req.body?.role,
+      email: req.body?.email,
       mobile_number: req.body?.mobile_number,
-      image_url: req.body?.image_url,
-      profession: req.body?.profession,
+      role: req.body?.role,
       birth_date: req?.body?.birth_date,
+      image_url: req?.body?.image_url,
     },
     {
       where: {
@@ -159,7 +160,6 @@ const update = async (req) => {
         "mobile_number",
         "is_verified",
         "image_url",
-        "profession",
         "birth_date",
       ],
       plain: true,
@@ -242,6 +242,36 @@ const getByUserIds = async (user_ids) => {
   });
 };
 
+const updateStatus = async (id, status) => {
+  const [rowCount, rows] = await UserModel.update(
+    {
+      blocked: status,
+    },
+    {
+      where: {
+        id: id,
+      },
+      returning: [
+        "id",
+        "username",
+        "email",
+        "first_name",
+        "last_name",
+        "blocked",
+        "role",
+        "mobile_number",
+        "is_verified",
+        "image_url",
+        "birth_date",
+      ],
+      plain: true,
+      raw: true,
+    }
+  );
+
+  return rows;
+};
+
 const findUsersWithBirthdayToday = async () => {
   const startIST = moment().startOf("day").toDate();
   const endIST = moment().endOf("day").toDate();
@@ -279,4 +309,5 @@ export default {
   getByResetToken,
   getByUserIds,
   findUsersWithBirthdayToday,
+  updateStatus,
 };

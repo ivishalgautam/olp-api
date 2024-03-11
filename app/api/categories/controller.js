@@ -101,7 +101,7 @@ const deleteById = async (req, res) => {
       return res.code(NOT_FOUND).send({ message: "Category not found!" });
 
     await table.CategoryModel.deleteById(req, req.params.id);
-    res.send({ mesage: "Category deleted." });
+    res.send({ message: "Category deleted." });
   } catch (error) {
     console.error(error);
     res.code(INTERNAL_SERVER_ERROR).send(error);

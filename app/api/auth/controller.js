@@ -22,7 +22,7 @@ const verifyUserCredentials = async (req, res) => {
   let passwordIsValid = await hash.verify(req.body.password, userData.password);
 
   if (!passwordIsValid) {
-    return res.code(401).send({
+    return res.code(400).send({
       message: "Invalid credentials",
     });
   }
