@@ -48,14 +48,24 @@ const updateById = async (req, res) => {
 
     if (data) {
       req.body.items.forEach(
-        async ({ _id: id, quantity, dispatched_quantity, comment, status }) => {
-          console.log({ dispatched_quantity });
+        async ({
+          _id: id,
+          quantity,
+          dispatched_quantity,
+          comment,
+          status,
+          enquiry_status,
+          available_quantity,
+        }) => {
+          console.log({ available_quantity });
           await table.OrderItemModel.update({
             id,
             quantity,
-            dispatched_quantity: dispatched_quantity ?? 0,
+            dispatched_quantity: dispatched_quantity ?? null,
             comment,
             status,
+            enquiry_status,
+            available_quantity: available_quantity ?? null,
           });
         }
       );
@@ -100,8 +110,8 @@ const getByOrderId = async (req, res) => {
 
 const get = async (req, res) => {
   try {
-    const products = await table.OrderModel.get("order");
-    res.send({ data: products });
+    const data = await table.OrderModel.get("enquiry");
+    res.send({ data: data });
   } catch (error) {
     console.error(error);
     res.code(INTERNAL_SERVER_ERROR).send(error);

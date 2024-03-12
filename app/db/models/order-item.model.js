@@ -41,10 +41,6 @@ const init = async (sequelize) => {
         type: DataTypes.INTEGER,
         allowNull: false,
       },
-      dispatched_quantity: {
-        type: DataTypes.INTEGER,
-        allowNull: true,
-      },
       comment: {
         type: DataTypes.TEXT,
         allowNull: true,
@@ -58,6 +54,23 @@ const init = async (sequelize) => {
           "completed"
         ),
         defaultValue: "pending",
+      },
+      dispatched_quantity: {
+        type: DataTypes.INTEGER,
+        allowNull: true,
+      },
+      enquiry_status: {
+        type: DataTypes.ENUM(
+          "available",
+          "not_available",
+          "partially_available",
+          "pending"
+        ),
+        defaultValue: "pending",
+      },
+      available_quantity: {
+        type: DataTypes.INTEGER,
+        allowNull: true,
       },
     },
     {
@@ -127,6 +140,8 @@ const update = async ({
   dispatched_quantity,
   comment,
   status,
+  enquiry_status,
+  available_quantity,
 }) => {
   const [rowCount, rows] = await OrderItemModel.update(
     {
@@ -134,6 +149,8 @@ const update = async ({
       dispatched_quantity: dispatched_quantity,
       comment: comment,
       status: status,
+      enquiry_status: enquiry_status,
+      available_quantity: available_quantity,
     },
     {
       where: {

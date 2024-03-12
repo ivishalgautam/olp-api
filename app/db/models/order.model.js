@@ -1,6 +1,6 @@
 "use strict";
 import constants from "../../lib/constants/index.js";
-import sequelizeFwk from "sequelize";
+import sequelizeFwk, { where } from "sequelize";
 
 const { DataTypes, QueryTypes, Deferrable } = sequelizeFwk;
 
@@ -36,6 +36,19 @@ const init = async (sequelize) => {
         ),
         defaultValue: "pending",
       },
+      enquiry_status: {
+        type: DataTypes.ENUM(
+          "available",
+          "not_available",
+          "partially_available",
+          "pending"
+        ),
+        defaultValue: "pending",
+      },
+      order_type: {
+        type: DataTypes.ENUM("enquiry", "order"),
+        defaultValue: "enquiry",
+      },
     },
     {
       createdAt: "created_at",
@@ -61,7 +74,7 @@ const create = async ({ order_id, user_id }) => {
   );
 };
 
-const get = async (req) => {
+const get = async (order_type = "order") => {
   const query = `
   SELECT
       o.*,
@@ -70,6 +83,7 @@ const get = async (req) => {
       usr.mobile_number
     FROM orders o
     LEFT JOIN users usr ON usr.id = o.user_id
+    WHERE o.order_type = '${order_type}'
   `;
 
   return await OrderModel.sequelize.query(query, {
@@ -82,6 +96,8 @@ const update = async (req, id) => {
   const [rowCount, rows] = await OrderModel.update(
     {
       status: req.body.status,
+      enquiry_status: req.body.enquiry_status,
+      order_type: req.body.order_type,
     },
     {
       where: {
@@ -110,6 +126,8 @@ const getByOrderId = async (order_id) => {
       o.id,
       o.user_id,
       o.status,
+      o.enquiry_status,
+      o.order_type,
       json_agg(json_build_object(
         'id', oi.id,
         'order_id', oi.order_id,
@@ -118,6 +136,8 @@ const getByOrderId = async (order_id) => {
         'dispatched_quantity', oi.dispatched_quantity,
         'comment', oi.comment,
         'status', oi.status,
+        'enquiry_status', oi.enquiry_status,
+        'available_quantity', oi.available_quantity,
         'title', prd.title,
         'pictures', prd.pictures
       )) as items

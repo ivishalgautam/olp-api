@@ -98,6 +98,11 @@ const get = async (req) => {
     whereQuery = `WHERE prd.is_featured = true`;
   }
 
+  const page = req.query.page ? Math.max(1, parseInt(req.query.page)) : 1;
+  const limit = req.query.limit ? parseInt(req.query.limit) : 10;
+
+  const offset = (page - 1) * limit;
+
   let query = `
     SELECT
       prd.*,
@@ -105,13 +110,28 @@ const get = async (req) => {
     FROM
       products prd
       LEFT JOIN categories cat ON cat.id = prd.category_id
-      ${whereQuery};
+      ${whereQuery}
+      LIMIT ${limit} OFFSET ${offset};
   `;
 
-  return await ProductModel.sequelize.query(query, {
+  const products = await ProductModel.sequelize.query(query, {
     type: QueryTypes.SELECT,
     raw: true,
   });
+
+  const { total } = await ProductModel.sequelize.query(
+    `SELECT COUNT(id) AS total FROM products;`,
+    {
+      type: QueryTypes.SELECT,
+      plain: true,
+    }
+  );
+
+  return {
+    data: products,
+    total_page: Math.ceil(Number(total) / Number(limit)),
+    page: page,
+  };
 };
 
 const updateById = async (req, id) => {
