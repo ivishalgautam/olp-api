@@ -62,23 +62,7 @@ const getBySlug = async (req, res) => {
       return res.code(NOT_FOUND).send({ message: "Product not found!" });
     }
 
-    console.log(record.variants);
-
-    console.log({
-      variants: record.variants?.filter(
-        (so) => !Object.values(so).some((d) => d === null)
-      ),
-    });
-
-    const data = {
-      ...record,
-      variants:
-        record.variants?.filter(
-          (so) => !Object.values(so).some((d) => d === null)
-        ) ?? [],
-    };
-
-    res.send({ data: data });
+    res.send({ data: record });
   } catch (error) {
     console.error(error);
     res.code(INTERNAL_SERVER_ERROR).send(error);
@@ -147,14 +131,12 @@ const getById = async (req, res) => {
 
 const get = async (req, res) => {
   try {
-    const products = await table.ProductModel.get(req);
-
-    res.send({ data: products });
+    const { data, page, total_page } = await table.ProductModel.get(req);
+    res.send({ data, page, total_page });
   } catch (error) {
     console.error(error);
     res.code(INTERNAL_SERVER_ERROR).send(error);
   }
-  t;
 };
 
 const deleteById = async (req, res) => {

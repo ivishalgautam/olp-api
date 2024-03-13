@@ -86,46 +86,86 @@ const create = async (req) => {
     meta_description: req.body.meta_description,
   });
 };
-
 const get = async (req) => {
-  let whereQuery = ``;
+  let whereConditions = [];
+  const queryParams = {};
 
   if (req.query.type) {
-    whereQuery = `WHERE prd.type = '${req.query.type}'`;
+    whereConditions.push(`prd.type = :type`);
+    queryParams.type = req.query.type;
   }
 
   if (req.query.featured) {
-    whereQuery = `WHERE prd.is_featured = true`;
+    whereConditions.push(`prd.is_featured = true`);
+  }
+
+  // const part = req.query.part;
+  const categories = req.query.categories;
+  const brands = req.query.brands;
+
+  if (categories) {
+    const categorySlugs = categories.split("_");
+    const categoryPlaceholders = categorySlugs
+      .map((_, index) => `:category${index}`)
+      .join(", ");
+    whereConditions.push(`cat.slug IN (${categoryPlaceholders})`);
+    categorySlugs.forEach((slug, index) => {
+      queryParams[`category${index}`] = slug;
+    });
+  }
+  if (brands) {
+    const brandSlugs = brands.split("_");
+    const brandPlaceholders = brandSlugs
+      .map((_, index) => `:brand${index}`)
+      .join(", ");
+    whereConditions.push(`brd.slug IN (${brandPlaceholders})`);
+    brandSlugs.forEach((slug, index) => {
+      queryParams[`brand${index}`] = slug;
+    });
+  }
+
+  let whereClause = "";
+  if (whereConditions.length > 0) {
+    whereClause = "WHERE " + whereConditions.join(" AND ");
   }
 
   const page = req.query.page ? Math.max(1, parseInt(req.query.page)) : 1;
   const limit = req.query.limit ? parseInt(req.query.limit) : 10;
-
   const offset = (page - 1) * limit;
 
-  let query = `
+  const query = `
     SELECT
       prd.*,
-      cat.name as category_name
+      cat.name AS category_name
     FROM
       products prd
       LEFT JOIN categories cat ON cat.id = prd.category_id
-      ${whereQuery}
-      LIMIT ${limit} OFFSET ${offset};
+      LEFT JOIN brands brd ON brd.id = prd.brand_id
+    ${whereClause}
+    LIMIT :limit OFFSET :offset;
   `;
 
   const products = await ProductModel.sequelize.query(query, {
+    replacements: { ...queryParams, limit, offset },
     type: QueryTypes.SELECT,
     raw: true,
   });
 
-  const { total } = await ProductModel.sequelize.query(
-    `SELECT COUNT(id) AS total FROM products;`,
-    {
-      type: QueryTypes.SELECT,
-      plain: true,
-    }
-  );
+  const countQuery = `
+    SELECT COUNT(prd.id) AS total
+    FROM products prd
+    LEFT JOIN categories cat ON cat.id = prd.category_id
+    LEFT JOIN brands brd ON brd.id = prd.brand_id
+    ${whereClause};
+  `;
+
+  const [{ total }] = await ProductModel.sequelize.query(countQuery, {
+    replacements: queryParams,
+    type: QueryTypes.SELECT,
+    raw: true,
+  });
+
+  console.log(countQuery, queryParams);
 
   return {
     data: products,
@@ -185,7 +225,7 @@ const getBySlug = async (req, slug) => {
       FROM
         products prd
       LEFT JOIN categories cat ON cat.id = prd.category_id
-      LEFT JOIN products rp ON prd.id = ANY(rp.related_products)
+      LEFT JOIN products rp ON rp.id = ANY(prd.related_products)
       WHERE prd.slug = '${req.params.slug || slug}'
       GROUP BY
         prd.id, prd.title, prd.slug, prd.description, prd.pictures, prd.tags, prd.type, prd.sku, prd.brand_id, prd.category_id, prd.status, 
@@ -239,7 +279,7 @@ const getByCategory = async (req, slug) => {
       plain: true,
     }
   );
-
+  console.log({ total_p: Math.ceil(Number(total) / Number(limit)) });
   return {
     products,
     total_page: Math.ceil(Number(total) / Number(limit)),

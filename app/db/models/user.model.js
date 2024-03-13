@@ -42,7 +42,7 @@ const init = async (sequelize) => {
       },
       blocked: {
         type: sequelizeFwk.DataTypes.BOOLEAN,
-        defaultValue: false,
+        defaultValue: true,
       },
       role: {
         type: sequelizeFwk.DataTypes.ENUM({
@@ -115,6 +115,7 @@ const getByUsername = async (req, record = undefined) => {
   return await UserModel.findOne({
     where: {
       username: req?.body?.username || record?.user?.username,
+      blocked: false,
     },
     attributes: [
       "id",

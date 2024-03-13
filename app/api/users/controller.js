@@ -80,7 +80,7 @@ const deleteById = async (req, res) => {
 
 const get = async (req, res) => {
   try {
-    return res.send(await table.UserModel.get());
+    return res.send({ data: await table.UserModel.get() });
   } catch (error) {
     console.error(error);
     return res.send(error);
