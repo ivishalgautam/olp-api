@@ -50,6 +50,7 @@ const constants = {
     ORDER_ITEM_TABLE: "order_items",
     TEMP_CART_TABLE: "temp_carts",
     QUERY_TABLE: "queries",
+    OTP_TABLE: "otps",
   },
   bcrypt: {
     SALT_ROUNDS: 10,

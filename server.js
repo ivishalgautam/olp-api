@@ -4,6 +4,7 @@ import { fileURLToPath } from "url";
 import cors from "@fastify/cors";
 import { dirname } from "path";
 import path from "path";
+import fastifyCookie from "@fastify/cookie";
 
 // import internal modules
 import authRoutes from "./app/api/auth/routes.js";
@@ -16,13 +17,31 @@ import brandsController from "./app/api/brand/controller.js";
 import queryController from "./app/api/query/controller.js";
 import { querySchema } from "./app/api/query/routes.js";
 /*
-    Register External packages, routes, database connection
+  Register External packages, routes, database connection
 */
 
 export default (app) => {
   app.register(fastifyStatic, {
     root: path.join(dirname(fileURLToPath(import.meta.url), "public")),
   });
+  // app.register(fastifyCookie);
+  // app.addHook("onRequest", (request, reply, done) => {
+  //   // Parse cookies from the request headers
+  //   console.log({ cookies: request.headers });
+  //   const cookies = {};
+  //   if (request.headers.cookie) {
+  //     request.headers.cookie.split(";").forEach((cookie) => {
+  //       const parts = cookie.split("=");
+  //       cookies[parts[0].trim()] = parts[1]
+  //         ? decodeURIComponent(parts[1].trim())
+  //         : undefined;
+  //     });
+  //   }
+  //   // Attach the parsed cookies to the request object
+  //   request.cookies = cookies;
+  //   done();
+  // });
+
   app.register(cors, { origin: "*" });
   app.register(pg_database);
   app.register(fastifyMultipart, {

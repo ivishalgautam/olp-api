@@ -165,8 +165,6 @@ const get = async (req) => {
     raw: true,
   });
 
-  console.log(countQuery, queryParams);
-
   return {
     data: products,
     total_page: Math.ceil(Number(total) / Number(limit)),
@@ -279,7 +277,6 @@ const getByCategory = async (req, slug) => {
       plain: true,
     }
   );
-  console.log({ total_p: Math.ceil(Number(total) / Number(limit)) });
   return {
     products,
     total_page: Math.ceil(Number(total) / Number(limit)),

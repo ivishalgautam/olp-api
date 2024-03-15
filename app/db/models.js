@@ -7,6 +7,7 @@ import orderModel from "./models/order.model.js";
 import orderItemModel from "./models/order-item.model.js";
 import tempCartModel from "./models/temp-cart.model.js";
 import queryModel from "./models/query.model.js";
+import otpModel from "./models/otp.model.js";
 
 export default {
   UserModel: userModel,
@@ -17,4 +18,5 @@ export default {
   OrderItemModel: orderItemModel,
   TempCartModel: tempCartModel,
   QueryModel: queryModel,
+  OtpModel: otpModel,
 };

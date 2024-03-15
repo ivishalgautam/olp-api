@@ -13,6 +13,7 @@
   },
   "author": "Vishal Gautam",
   "dependencies": {
+    "@fastify/cookie": "^9.3.1",
     "@fastify/cors": "^8.3.0",
     "@fastify/multipart": "^7.7.0",
     "@fastify/static": "^6.10.2",

@@ -273,6 +273,23 @@ const updateStatus = async (id, status) => {
   return rows;
 };
 
+const verify = async ({ user_id, status }) => {
+  const [rowCount, rows] = await UserModel.update(
+    {
+      is_verified: status,
+    },
+    {
+      where: {
+        id: user_id,
+      },
+      plain: true,
+      raw: true,
+    }
+  );
+
+  return rows;
+};
+
 const findUsersWithBirthdayToday = async () => {
   const startIST = moment().startOf("day").toDate();
   const endIST = moment().endOf("day").toDate();
@@ -297,18 +314,19 @@ const findUsersWithBirthdayToday = async () => {
 };
 
 export default {
-  init,
-  create,
-  get,
-  getById,
-  getByUsername,
-  update,
-  updatePassword,
-  deleteById,
-  countUser,
-  getByEmailId,
-  getByResetToken,
-  getByUserIds,
-  findUsersWithBirthdayToday,
-  updateStatus,
+  init: init,
+  create: create,
+  get: get,
+  getById: getById,
+  getByUsername: getByUsername,
+  update: update,
+  updatePassword: updatePassword,
+  deleteById: deleteById,
+  countUser: countUser,
+  getByEmailId: getByEmailId,
+  getByResetToken: getByResetToken,
+  getByUserIds: getByUserIds,
+  findUsersWithBirthdayToday: findUsersWithBirthdayToday,
+  updateStatus: updateStatus,
+  verify: verify,
 };
