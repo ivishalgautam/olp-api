@@ -66,6 +66,8 @@ const getByUserId = async (user_id) => {
     where: {
       user_id: user_id,
     },
+    order: [["updated_at", "desc"]],
+    limit: 1,
     raw: true,
     plain: true,
   });

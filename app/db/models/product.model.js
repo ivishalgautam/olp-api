@@ -142,6 +142,7 @@ const get = async (req) => {
       LEFT JOIN categories cat ON cat.id = prd.category_id
       LEFT JOIN brands brd ON brd.id = prd.brand_id
     ${whereClause}
+    ORDER BY prd.updated_at DESC
     LIMIT :limit OFFSET :offset;
   `;
 
@@ -215,11 +216,14 @@ const getById = async (req, id) => {
 };
 
 const getBySlug = async (req, slug) => {
-  let query = `
+  let query = `  
       SELECT
         prd.id, prd.title, prd.slug, prd.description, prd.pictures, prd.tags, prd.type, prd.sku, prd.brand_id, prd.category_id, prd.status, 
         prd.is_featured, prd.meta_title, prd.meta_description, prd.created_at, prd.updated_at, cat.name as category_name,
-        json_agg(rp.*) as related_products
+        CASE
+          WHEN COUNT(rp.id) > 0 THEN json_agg(rp.*)
+          ELSE '[]'::json
+        END AS related_products
       FROM
         products prd
       LEFT JOIN categories cat ON cat.id = prd.category_id

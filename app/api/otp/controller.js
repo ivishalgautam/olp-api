@@ -1,6 +1,7 @@
 "use strict";
 import constants from "../../lib/constants/index.js";
 import table from "../../db/models.js";
+import moment from "moment";
 
 const create = async (req, res) => {
   try {
@@ -29,10 +30,14 @@ const verify = async (req, res) => {
     if (!record) {
       return res
         .code(constants.http.status.NOT_FOUND)
-        .send({ message: "OTP not found!" });
+        .send({ message: "Please resend OTP!" });
     }
 
-    console.log({ record, otp: req.params.otp });
+    const isExpired = moment(record.created_at).add(5, "minutes").isBefore();
+    if (isExpired) {
+      await table.OtpModel.deleteByUserId(req.user_data.id);
+      return res.code(400).send({ message: "Please resend OTP!" });
+    }
 
     if (record.otp != req.params.otp) {
       return res.code(400).send({ message: "Incorrect otp!" });
