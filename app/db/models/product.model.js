@@ -136,7 +136,10 @@ const get = async (req) => {
   const query = `
     SELECT
       prd.*,
-      cat.name AS category_name
+      cat.name AS category_name,
+      cat.slug AS category_slug,
+      brd.name AS brand_name,
+      brd.slug AS brand_slug
     FROM
       products prd
       LEFT JOIN categories cat ON cat.id = prd.category_id
@@ -261,10 +264,14 @@ const getByCategory = async (req, slug) => {
   let query = `
     SELECT
       prd.*,
-      cat.name as category_name
+      cat.name AS category_name,
+      cat.slug AS category_slug,
+      brd.name AS brand_name,
+      brd.slug AS brand_slug
     FROM
       products prd
       LEFT JOIN categories cat ON cat.id = prd.category_id
+      LEFT JOIN brands brd ON brd.id = prd.brand_id
       WHERE cat.slug = '${slug}'
       ${threshold}
   `;
@@ -310,9 +317,13 @@ const getByBrand = async (req, slug) => {
   let query = `
     SELECT
       prd.*,
-      brd.name as brand_name
+      cat.name AS category_name,
+      cat.slug AS category_slug,
+      brd.name AS brand_name,
+      brd.slug AS brand_slug
     FROM
       products prd
+      LEFT JOIN categories cat ON cat.id = prd.category_id
       LEFT JOIN brands brd ON brd.id = prd.brand_id
       WHERE brd.slug = '${slug}'
       ${threshold}

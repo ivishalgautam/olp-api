@@ -2,20 +2,48 @@
 import constants from "../../lib/constants/index.js";
 import table from "../../db/models.js";
 import moment from "moment";
+import crypto from "crypto";
+import axios from "axios";
 
 const create = async (req, res) => {
   try {
-    const otp = 111111;
+    const user = await table.UserModel.getById(req, req.user_data.id);
+    const otp = crypto.randomInt(100000, 999999);
     const record = await table.OtpModel.getByUserId(req.user_data.id);
 
-    if (record) {
-      await table.OtpModel.update({ user_id: req.user_data.id, otp: otp });
-    } else {
-      await table.OtpModel.create({
-        user_id: req.user_data.id,
-        otp: otp,
-      });
+    let config = {
+      method: "post",
+      maxBodyLength: Infinity,
+      url: "https://api.interakt.ai/v1/public/message/",
+      headers: {
+        Authorization: `Basic ${process.env.INTERACT_API_KEY}`,
+        "Content-Type": "application/json",
+      },
+      data: JSON.stringify({
+        countryCode: "+91",
+        phoneNumber: user.mobile_number,
+        callbackData: "Otp sent successfully.",
+        type: "Template",
+        template: {
+          name: process.env.INTERACT_TEMPLATE_NAME,
+          languageCode: "en",
+          bodyValues: [`${user.first_name} ${user.last_name}`, otp],
+        },
+      }),
+    };
+
+    const resp = await axios(config);
+    if (resp.data.result) {
+      if (record) {
+        await table.OtpModel.update({ user_id: req.user_data.id, otp: otp });
+      } else {
+        await table.OtpModel.create({
+          user_id: req.user_data.id,
+          otp: otp,
+        });
+      }
     }
+
     res.send({ message: "Otp sent" });
   } catch (error) {
     console.error(error);
@@ -30,7 +58,7 @@ const verify = async (req, res) => {
     if (!record) {
       return res
         .code(constants.http.status.NOT_FOUND)
-        .send({ message: "Please resend OTP!" });
+        .send({ message: "OTP not found!" });
     }
 
     const isExpired = moment(record.created_at).add(5, "minutes").isBefore();

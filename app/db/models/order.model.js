@@ -59,12 +59,13 @@ const init = async (sequelize) => {
   await OrderModel.sync({ alter: true });
 };
 
-const create = async ({ order_id, user_id }) => {
+const create = async ({ order_id, user_id, order_type }) => {
   console.log({ order_id, user_id });
   return await OrderModel.create(
     {
       id: order_id,
       user_id: user_id,
+      order_type: order_type,
     },
     {
       returning: true,
@@ -84,6 +85,7 @@ const get = async (order_type = "order") => {
     FROM orders o
     LEFT JOIN users usr ON usr.id = o.user_id
     WHERE o.order_type = '${order_type}'
+    ORDER BY o.created_at DESC
   `;
 
   return await OrderModel.sequelize.query(query, {

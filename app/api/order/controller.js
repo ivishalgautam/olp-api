@@ -11,6 +11,7 @@ const create = async (req, res) => {
     const order = await table.OrderModel.create({
       order_id: orderId,
       user_id: req.body.user_id ?? req.user_data.id,
+      order_type: req.user_data.role === "admin" ? "order" : "enquiry",
     });
 
     if (order) {
