@@ -4,11 +4,11 @@ import sequelizeFwk, { where } from "sequelize";
 
 const { DataTypes, QueryTypes, Deferrable } = sequelizeFwk;
 
-let OrderModel = null;
+let EnquiryModel = null;
 
 const init = async (sequelize) => {
-  OrderModel = sequelize.define(
-    constants.models.ORDER_TABLE,
+  EnquiryModel = sequelize.define(
+    constants.models.ENQUIRY_TABLE,
     {
       id: {
         primaryKey: true,
@@ -28,11 +28,10 @@ const init = async (sequelize) => {
       },
       status: {
         type: DataTypes.ENUM(
-          "pending",
-          "partially_dispatched",
-          "dispatched",
-          "cancelled",
-          "completed"
+          "available",
+          "not_available",
+          "partially_available",
+          "pending"
         ),
         defaultValue: "pending",
       },
@@ -43,13 +42,13 @@ const init = async (sequelize) => {
     }
   );
 
-  await OrderModel.sync({ alter: true });
+  await EnquiryModel.sync({ alter: true });
 };
 
-const create = async ({ order_id, user_id }) => {
-  return await OrderModel.create(
+const create = async ({ enquiry_id, user_id }) => {
+  return await EnquiryModel.create(
     {
-      id: order_id,
+      id: enquiry_id,
       user_id: user_id,
     },
     {
@@ -61,32 +60,32 @@ const create = async ({ order_id, user_id }) => {
 };
 
 const get = async (req) => {
-  let whereQuery = `WHERE o.user_id = '${req.user_data.id}'`;
+  let whereQuery = `WHERE enq.user_id = '${req.user_data.id}'`;
 
   if (req.user_data.role === "admin") {
     whereQuery = "";
   }
 
   const query = `
-  SELECT
-      o.*,
+    SELECT
+      enq.*,
       CONCAT(usr.first_name, ' ', usr.last_name) as customer_name,
       usr.email,
       usr.mobile_number
-    FROM orders o
-    LEFT JOIN users usr ON usr.id = o.user_id
+    FROM enquiries enq
+    LEFT JOIN users usr ON usr.id = enq.user_id
     ${whereQuery}
-    ORDER BY o.created_at DESC
+    ORDER BY enq.created_at DESC
   `;
 
-  return await OrderModel.sequelize.query(query, {
+  return await EnquiryModel.sequelize.query(query, {
     type: QueryTypes.SELECT,
     raw: true,
   });
 };
 
 const update = async (req, id) => {
-  const [rowCount, rows] = await OrderModel.update(
+  const [rowCount, rows] = await EnquiryModel.update(
     {
       status: req.body.status,
     },
@@ -105,33 +104,33 @@ const update = async (req, id) => {
 
 const getById = async (id) => {
   const query = `
-  SELECT
-      o.id,
-      o.user_id,
-      o.status,
-      json_agg(json_build_object(
-        'id', oi.id,
-        'order_id', oi.order_id,
-        'product_id', oi.product_id,
-        'quantity', oi.quantity,
-        'dispatched_quantity', oi.dispatched_quantity,
-        'comment', oi.comment,
-        'status', oi.status,
-        'title', prd.title,
-        'pictures', prd.pictures,
-        'slug', prd.slug
-      )) as items
-    FROM orders o
-    LEFT JOIN order_items oi ON oi.order_id = o.id
-    LEFT JOIN products prd ON prd.id = oi.product_id
-    WHERE o.id = '${id}'
-    GROUP BY
-        o.id,
-        o.user_id,
-        o.status
-  `;
+    SELECT
+        enq.id,
+        enq.user_id,
+        enq.status,
+        json_agg(json_build_object(
+          'id', ei.id,
+          'enquiry_id', ei.enquiry_id,
+          'product_id', ei.product_id,
+          'quantity', ei.quantity,
+          'comment', ei.comment,
+          'status', ei.status,
+          'available_quantity', ei.available_quantity,
+          'title', prd.title,
+          'pictures', prd.pictures,
+          'slug', prd.slug
+        )) as items
+      FROM enquiries enq
+      LEFT JOIN enquiry_items ei ON ei.enquiry_id = enq.id
+      LEFT JOIN products prd ON prd.id = ei.product_id
+      WHERE enq.id = '${id}'
+      GROUP BY
+          enq.id,
+          enq.user_id,
+          enq.status
+    `;
 
-  return await OrderModel.sequelize.query(query, {
+  return await EnquiryModel.sequelize.query(query, {
     type: QueryTypes.SELECT,
     raw: true,
     plain: true,
@@ -139,7 +138,7 @@ const getById = async (id) => {
 };
 
 const deleteById = async (req, id) => {
-  return await OrderModel.destroy({
+  return await EnquiryModel.destroy({
     where: { id: req.params.id || id },
   });
 };

@@ -8,6 +8,7 @@ import jwt from "jsonwebtoken";
 const expiresIn = constants.time.TOKEN_EXPIRES_IN;
 
 function generateAccessToken(userData) {
+  console.log({ userData });
   return [
     jwt.sign({ user: userData }, config.jwt_secret, {
       expiresIn: String(expiresIn),

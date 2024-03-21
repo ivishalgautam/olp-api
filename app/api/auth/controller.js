@@ -16,7 +16,9 @@ const verifyUserCredentials = async (req, res) => {
   }
 
   if (!userData) {
-    return res.code(404).send({ message: "User not found!" });
+    return res
+      .code(404)
+      .send({ message: "User not active. Please contact administrator!" });
   }
 
   let passwordIsValid = await hash.verify(req.body.password, userData.password);

@@ -48,6 +48,8 @@ const constants = {
     BRAND_TABLE: "brands",
     ORDER_TABLE: "orders",
     ORDER_ITEM_TABLE: "order_items",
+    ENQUIRY_TABLE: "enquiries",
+    ENQUIRY_ITEM_TABLE: "enquiry_items",
     TEMP_CART_TABLE: "temp_carts",
     QUERY_TABLE: "queries",
     OTP_TABLE: "otps",

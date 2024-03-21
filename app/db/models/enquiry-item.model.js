@@ -4,11 +4,11 @@ import sequelizeFwk from "sequelize";
 
 const { DataTypes, QueryTypes, Deferrable } = sequelizeFwk;
 
-let OrderItemModel = null;
+let EnquiryItemModel = null;
 
 const init = async (sequelize) => {
-  OrderItemModel = sequelize.define(
-    constants.models.ORDER_ITEM_TABLE,
+  EnquiryItemModel = sequelize.define(
+    constants.models.ENQUIRY_ITEM_TABLE,
     {
       id: {
         primaryKey: true,
@@ -17,12 +17,12 @@ const init = async (sequelize) => {
         defaultValue: DataTypes.UUIDV4,
         unique: true,
       },
-      order_id: {
+      enquiry_id: {
         type: DataTypes.STRING,
         allowNull: false,
         onDelete: "CASCADE",
         references: {
-          model: constants.models.ORDER_TABLE,
+          model: constants.models.ENQUIRY_TABLE,
           key: "id",
           deferrable: Deferrable.INITIALLY_IMMEDIATE,
         },
@@ -41,23 +41,22 @@ const init = async (sequelize) => {
         type: DataTypes.INTEGER,
         allowNull: false,
       },
+      available_quantity: {
+        type: DataTypes.INTEGER,
+        allowNull: true,
+      },
       comment: {
         type: DataTypes.TEXT,
         allowNull: true,
       },
       status: {
         type: DataTypes.ENUM(
-          "pending",
-          "partially_dispatched",
-          "dispatched",
-          "cancelled",
-          "completed"
+          "available",
+          "not_available",
+          "partially_available",
+          "pending"
         ),
         defaultValue: "pending",
-      },
-      dispatched_quantity: {
-        type: DataTypes.INTEGER,
-        allowNull: true,
       },
     },
     {
@@ -66,76 +65,58 @@ const init = async (sequelize) => {
     }
   );
 
-  await OrderItemModel.sync({ alter: true });
+  await EnquiryItemModel.sync({ alter: true });
 };
 
-const create = async ({
-  order_id,
-  product_id,
-  quantity,
-  dispatched_quantity,
-  status,
-}) => {
-  return await OrderItemModel.create({
-    order_id: order_id,
+const create = async ({ enquiry_id, product_id, quantity }) => {
+  return await EnquiryItemModel.create({
+    enquiry_id: enquiry_id,
     product_id: product_id,
     quantity: quantity,
-    dispatched_quantity: dispatched_quantity,
-    status: status,
   });
 };
 
 const get = async (req) => {
   const query = `
-  SELECT
+    SELECT
       o.id,
       o.user_id,
       o.status,
       json_agg(json_build_object(
-        'id', oi.id,
-        'order_id', oi.order_id,
-        'product_id', oi.product_id,
-        'quantity', oi.quantity,
-        'dispatched_quantity', oi.dispatched_quantity,
-        'comment', oi.comment,
-        'status', oi.status,
+        'id', ei.id,
+        'enquiry_id', ei.enquiry_id,
+        'product_id', ei.product_id,
+        'quantity', ei.quantity,
+        'available_quantity', available_quantity,
+        'comment', ei.comment,
+        'status', ei.status,
         'title', prd.title,
+        'product_slug', prd.slug,
         'pictures', prd.pictures
       )) as items
-    FROM orders o
-    LEFT JOIN order_items oi ON oi.order_id = o.id
-    LEFT JOIN products prd ON prd.id = oi.product_id
-    WHERE o.user_id = '${req?.user_data?.id}'
+    FROM enquiries enq
+    LEFT JOIN enquiry_items ei ON ei.enquiry_id = enq.id
+    LEFT JOIN products prd ON prd.id = ei.product_id
+    WHERE enq.user_id = '${req?.user_data?.id}'
     GROUP BY
         o.id,
         o.user_id,
         o.status
   `;
 
-  return await OrderItemModel.sequelize.query(query, {
+  return await EnquiryItemModel.sequelize.query(query, {
     type: QueryTypes.SELECT,
     raw: true,
     plain: true,
   });
 };
 
-const update = async ({
-  id,
-  quantity,
-  dispatched_quantity,
-  comment,
-  status,
-  enquiry_status,
-  available_quantity,
-}) => {
-  const [rowCount, rows] = await OrderItemModel.update(
+const update = async ({ id, available_quantity, comment, status }) => {
+  const [rowCount, rows] = await EnquiryItemModel.update(
     {
-      quantity: quantity,
-      dispatched_quantity: dispatched_quantity,
+      available_quantity: available_quantity,
       comment: comment,
       status: status,
-      enquiry_status: enquiry_status,
-      available_quantity: available_quantity,
     },
     {
       where: {
@@ -151,7 +132,7 @@ const update = async ({
 };
 
 const getById = async (req, id) => {
-  return await OrderItemModel.findOne({
+  return await EnquiryItemModel.findOne({
     where: {
       id: req.params.id || id,
     },
@@ -161,7 +142,7 @@ const getById = async (req, id) => {
 };
 
 const deleteById = async (req, id) => {
-  return await OrderItemModel.destroy({
+  return await EnquiryItemModel.destroy({
     where: { id: req.params.id || id },
   });
 };

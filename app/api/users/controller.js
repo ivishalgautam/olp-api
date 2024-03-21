@@ -2,10 +2,19 @@
 
 import table from "../../db/models.js";
 import hash from "../../lib/encryption/index.js";
+import ejs from "ejs";
+import fs from "fs";
+import path from "path";
+import { sendCredentials } from "../../helpers/mailer.js";
+import { fileURLToPath } from "url";
+import authToken from "../../helpers/auth.js";
+import crypto from "crypto";
+import axios from "axios";
 
 const create = async (req, res) => {
   try {
     const record = await table.UserModel.getByUsername(req);
+    const otp = crypto.randomInt(100000, 999999);
 
     if (record) {
       return res.code(409).send({
@@ -14,9 +23,51 @@ const create = async (req, res) => {
       });
     }
 
-    const user = await table.UserModel.create(req);
+    const data = await table.UserModel.create(req);
 
-    res.send(user);
+    const userData = await table.UserModel.getById(req, data.dataValues.id);
+
+    let config = {
+      method: "post",
+      maxBodyLength: Infinity,
+      url: "https://api.interakt.ai/v1/public/message/",
+      headers: {
+        Authorization: `Basic ${process.env.INTERACT_API_KEY}`,
+        "Content-Type": "application/json",
+      },
+      data: JSON.stringify({
+        countryCode: userData.country_code,
+        phoneNumber: userData.mobile_number,
+        callbackuserData: "Otp sent successfully.",
+        type: "Template",
+        template: {
+          name: process.env.INTERACT_TEMPLATE_NAME,
+          languageCode: "en",
+          bodyValues: [`${userData.first_name} ${userData.last_name}`, otp],
+        },
+      }),
+    };
+
+    const resp = await axios(config);
+
+    console.log(resp.data);
+
+    if (resp.data.result) {
+      await table.OtpModel.create({
+        user_id: data.dataValues.id,
+        otp: otp,
+      });
+    }
+
+    const [jwtToken, expiresIn] = authToken.generateAccessToken(userData);
+    const refreshToken = authToken.generateRefreshToken(userData);
+
+    return res.send({
+      token: jwtToken,
+      expire_time: Date.now() + expiresIn,
+      refresh_token: refreshToken,
+      user_data: userData,
+    });
   } catch (error) {
     console.error(error);
     return res.send(error);
@@ -46,17 +97,40 @@ const update = async (req, res) => {
 
 const updateStatus = async (req, res) => {
   try {
-    console.log(req.body);
     const record = await table.UserModel.getById(req);
     if (!record) {
       return res.code(404).send({ message: "User not exists" });
     }
     const data = await table.UserModel.updateStatus(
       req.params.id,
-      req.body.blocked
+      req.body.is_active
     );
+
+    if (data.is_active) {
+      // Read the email template file
+      const emailTemplatePath = path.join(
+        fileURLToPath(import.meta.url),
+        "..",
+        "..",
+        "..",
+        "..",
+        "views",
+        "credentials.ejs"
+      );
+      const emailTemplate = fs.readFileSync(emailTemplatePath, "utf-8");
+
+      // Render the email template with user data
+      const template = ejs.render(emailTemplate, {
+        fullname: `${data.first_name} ${data.last_name}`,
+        username: data.username,
+        password: 1234,
+      });
+
+      await sendCredentials(template, data?.email);
+    }
+
     res.send({
-      message: data?.blocked ? "Customer blocked." : "Customer unblocked.",
+      message: data?.is_active ? "Customer Active." : "Customer Inactive.",
     });
   } catch (error) {
     console.error(error);

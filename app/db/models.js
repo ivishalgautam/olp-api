@@ -5,6 +5,8 @@ import categoryModel from "./models/category.model.js";
 import brandModel from "./models/brand.model.js";
 import orderModel from "./models/order.model.js";
 import orderItemModel from "./models/order-item.model.js";
+import enquiryModel from "./models/enquiry.model.js";
+import enquiryItemModel from "./models/enquiry-item.model.js";
 import tempCartModel from "./models/temp-cart.model.js";
 import queryModel from "./models/query.model.js";
 import otpModel from "./models/otp.model.js";
@@ -16,6 +18,8 @@ export default {
   BrandModel: brandModel,
   OrderModel: orderModel,
   OrderItemModel: orderItemModel,
+  EnquiryModel: enquiryModel,
+  EnquiryItemModel: enquiryItemModel,
   TempCartModel: tempCartModel,
   QueryModel: queryModel,
   OtpModel: otpModel,

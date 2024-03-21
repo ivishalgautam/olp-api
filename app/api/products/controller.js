@@ -16,6 +16,8 @@ const create = async (req, res) => {
         .code(BAD_REQUEST)
         .send({ message: "Product exist with this name!" });
 
+    console.log(req.body);
+
     const product = await table.ProductModel.create(req);
 
     res.send({ data: product });
@@ -26,7 +28,8 @@ const create = async (req, res) => {
 };
 
 const updateById = async (req, res) => {
-  console.log({ variants: req.body.variants });
+  console.log(req.body);
+
   try {
     let slug = slugify(req.body.title, { lower: true });
     req.body.slug = slug;

@@ -11,7 +11,6 @@ const create = async (req, res) => {
     const order = await table.OrderModel.create({
       order_id: orderId,
       user_id: req.body.user_id ?? req.user_data.id,
-      order_type: req.user_data.role === "admin" ? "order" : "enquiry",
     });
 
     if (order) {
@@ -39,10 +38,10 @@ const create = async (req, res) => {
 
 const updateById = async (req, res) => {
   try {
-    const record = await table.OrderModel.getById(req, req.params.id);
+    const record = await table.OrderModel.getById(req.params.id);
 
     if (!record) {
-      return res.code(NOT_FOUND).send({ message: "order not found!" });
+      return res.code(NOT_FOUND).send({ message: "Order not found!" });
     }
 
     const data = await table.OrderModel.update(req, req.params.id);
@@ -50,7 +49,6 @@ const updateById = async (req, res) => {
     if (data) {
       req.body.items.forEach(
         async ({ _id: id, quantity, dispatched_quantity, comment, status }) => {
-          console.log({ dispatched_quantity });
           await table.OrderItemModel.update({
             id,
             quantity,
@@ -71,22 +69,7 @@ const updateById = async (req, res) => {
 
 const getById = async (req, res) => {
   try {
-    const record = await table.OrderModel.getById(req, req.params.id);
-
-    if (!record) {
-      return res.code(NOT_FOUND).send({ message: "order not found!" });
-    }
-
-    res.send(record);
-  } catch (error) {
-    console.error(error);
-    res.code(INTERNAL_SERVER_ERROR).send(error);
-  }
-};
-
-const getByOrderId = async (req, res) => {
-  try {
-    const record = await table.OrderModel.getByOrderId(req.params.order_id);
+    const record = await table.OrderModel.getById(req.params.id);
 
     if (!record) {
       return res.code(NOT_FOUND).send({ message: "order not found!" });
@@ -101,19 +84,8 @@ const getByOrderId = async (req, res) => {
 
 const get = async (req, res) => {
   try {
-    const products = await table.OrderModel.get("order");
-    res.send({ data: products });
-  } catch (error) {
-    console.error(error);
-    res.code(INTERNAL_SERVER_ERROR).send(error);
-  }
-};
-
-const getOrderItems = async (req, res) => {
-  console.log(req.user_data.id);
-  try {
-    const orders = await table.OrderItemModel.get(req);
-    res.send({ data: orders });
+    const data = await table.OrderModel.get(req);
+    res.send({ data: data });
   } catch (error) {
     console.error(error);
     res.code(INTERNAL_SERVER_ERROR).send(error);
@@ -122,12 +94,11 @@ const getOrderItems = async (req, res) => {
 
 const deleteById = async (req, res) => {
   try {
-    const record = await table.OrderModel.getById(req, req.params.id);
+    const record = await table.OrderModel.deleteById(req, req.params.id);
 
     if (!record)
       return res.code(NOT_FOUND).send({ message: "order not found!" });
 
-    await table.OrderModel.deleteById(req, req.params.id);
     res.send({ message: "order deleted." });
   } catch (error) {
     console.error(error);
@@ -156,10 +127,8 @@ const deleteOrderItemById = async (req, res) => {
 export default {
   create: create,
   get: get,
-  getByOrderId: getByOrderId,
   updateById: updateById,
   deleteById: deleteById,
   getById: getById,
   deleteOrderItemById: deleteOrderItemById,
-  getOrderItems: getOrderItems,
 };

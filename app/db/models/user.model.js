@@ -30,6 +30,10 @@ const init = async (sequelize) => {
         type: sequelizeFwk.DataTypes.STRING,
         allowNull: false,
       },
+      country_code: {
+        type: sequelizeFwk.DataTypes.STRING,
+        allowNull: false,
+      },
       first_name: {
         type: sequelizeFwk.DataTypes.STRING,
       },
@@ -40,9 +44,9 @@ const init = async (sequelize) => {
         type: sequelizeFwk.DataTypes.STRING,
         allowNull: false,
       },
-      blocked: {
+      is_active: {
         type: sequelizeFwk.DataTypes.BOOLEAN,
-        defaultValue: true,
+        defaultValue: false,
       },
       role: {
         type: sequelizeFwk.DataTypes.ENUM({
@@ -50,15 +54,9 @@ const init = async (sequelize) => {
         }),
         defaultValue: "user",
       },
-      birth_date: {
-        type: sequelizeFwk.DataTypes.DATEONLY,
-      },
       is_verified: {
         type: sequelizeFwk.DataTypes.BOOLEAN,
         defaultValue: false,
-      },
-      image_url: {
-        type: sequelizeFwk.DataTypes.STRING,
       },
       reset_password_token: {
         type: sequelizeFwk.DataTypes.STRING,
@@ -85,15 +83,15 @@ const create = async (req) => {
     last_name: req.body?.last_name,
     email: req.body?.email,
     mobile_number: req.body?.mobile_number,
+    country_code: req.body?.country_code.replace(/\s/g, ""),
     role: req.body?.role,
-    birth_date: req?.body?.birth_date,
-    image_url: req?.body?.image_url,
   });
 };
 
 const get = async () => {
   return await UserModel.findAll({
     where: { role: "user" },
+    order: [["created_at", "DESC"]],
     attributes: {
       exclude: ["password", "reset_password_token", "confirmation_token"],
     },
@@ -105,9 +103,20 @@ const getById = async (req, user_id) => {
     where: {
       id: req?.params?.id || user_id,
     },
-    attributes: {
-      exclude: ["reset_password_token", "confirmation_token"],
-    },
+    raw: true,
+    attributes: [
+      "id",
+      "username",
+      "email",
+      "first_name",
+      "last_name",
+      "password",
+      "is_active",
+      "role",
+      "mobile_number",
+      "country_code",
+      "is_verified",
+    ],
   });
 };
 
@@ -115,7 +124,7 @@ const getByUsername = async (req, record = undefined) => {
   return await UserModel.findOne({
     where: {
       username: req?.body?.username || record?.user?.username,
-      blocked: false,
+      is_active: true,
     },
     attributes: [
       "id",
@@ -124,12 +133,11 @@ const getByUsername = async (req, record = undefined) => {
       "first_name",
       "last_name",
       "password",
-      "blocked",
+      "is_active",
       "role",
       "mobile_number",
+      "country_code",
       "is_verified",
-      "image_url",
-      "birth_date",
     ],
   });
 };
@@ -142,9 +150,9 @@ const update = async (req) => {
       last_name: req.body?.last_name,
       email: req.body?.email,
       mobile_number: req.body?.mobile_number,
+      country_code: req.body?.country_code.replace(/\s/g, ""),
+
       role: req.body?.role,
-      birth_date: req?.body?.birth_date,
-      image_url: req?.body?.image_url,
     },
     {
       where: {
@@ -156,12 +164,11 @@ const update = async (req) => {
         "email",
         "first_name",
         "last_name",
-        "blocked",
+        "is_active",
         "role",
         "mobile_number",
+        "country_code",
         "is_verified",
-        "image_url",
-        "birth_date",
       ],
       plain: true,
     }
@@ -246,7 +253,7 @@ const getByUserIds = async (user_ids) => {
 const updateStatus = async (id, status) => {
   const [rowCount, rows] = await UserModel.update(
     {
-      blocked: status,
+      is_active: status,
     },
     {
       where: {
@@ -258,12 +265,11 @@ const updateStatus = async (id, status) => {
         "email",
         "first_name",
         "last_name",
-        "blocked",
+        "is_active",
         "role",
         "mobile_number",
+        "country_code",
         "is_verified",
-        "image_url",
-        "birth_date",
       ],
       plain: true,
       raw: true,

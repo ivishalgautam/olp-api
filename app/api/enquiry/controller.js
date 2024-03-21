@@ -1,25 +1,29 @@
 "use strict";
 import constants from "../../lib/constants/index.js";
 import table from "../../db/models.js";
-import { generateOrderId } from "../../helpers/generateOrderId.js";
+import {
+  generateEnquiryId,
+  generateOrderId,
+} from "../../helpers/generateOrderId.js";
 
 const { BAD_REQUEST, INTERNAL_SERVER_ERROR, NOT_FOUND } = constants.http.status;
 
 const create = async (req, res) => {
   try {
-    const orderId = generateOrderId();
-    const order = await table.OrderModel.create({
-      order_id: orderId,
-      user_id: req.body.user_id ?? req.user_data.id,
+    const enquiry_id = generateEnquiryId();
+
+    const enquiry = await table.EnquiryModel.create({
+      enquiry_id: enquiry_id,
+      user_id: req.user_data.id,
     });
 
-    if (order) {
+    if (enquiry) {
       req.body?.items.forEach(
         async ({ _id: tempCartProductId, product_id, quantity }) => {
-          const newOrder = await table.OrderItemModel.create({
-            order_id: order.id,
-            product_id,
-            quantity,
+          const newOrder = await table.EnquiryItemModel.create({
+            enquiry_id: enquiry.id,
+            product_id: product_id,
+            quantity: quantity,
           });
 
           if (newOrder) {
@@ -38,40 +42,28 @@ const create = async (req, res) => {
 
 const updateById = async (req, res) => {
   try {
-    const record = await table.OrderModel.getById(req, req.params.id);
+    const record = await table.EnquiryModel.getById(req.params.id);
 
     if (!record) {
-      return res.code(NOT_FOUND).send({ message: "order not found!" });
+      return res.code(NOT_FOUND).send({ message: "Enquiry not found!" });
     }
 
-    const data = await table.OrderModel.update(req, req.params.id);
+    const data = await table.EnquiryModel.update(req, req.params.id);
 
     if (data) {
       req.body.items.forEach(
-        async ({
-          _id: id,
-          quantity,
-          dispatched_quantity,
-          comment,
-          status,
-          enquiry_status,
-          available_quantity,
-        }) => {
-          console.log({ available_quantity });
-          await table.OrderItemModel.update({
+        async ({ _id: id, available_quantity, comment, status }) => {
+          await table.EnquiryItemModel.update({
             id,
-            quantity,
-            dispatched_quantity: dispatched_quantity ?? null,
+            available_quantity: available_quantity ?? null,
             comment,
             status,
-            enquiry_status,
-            available_quantity: available_quantity ?? null,
           });
         }
       );
     }
 
-    res.send({ message: "updated" });
+    res.send({ message: "Updated" });
   } catch (error) {
     console.error(error);
     res.code(INTERNAL_SERVER_ERROR).send(error);
@@ -80,25 +72,10 @@ const updateById = async (req, res) => {
 
 const getById = async (req, res) => {
   try {
-    const record = await table.OrderModel.getById(req, req.params.id);
+    const record = await table.EnquiryModel.getById(req.params.id);
 
     if (!record) {
-      return res.code(NOT_FOUND).send({ message: "order not found!" });
-    }
-
-    res.send(record);
-  } catch (error) {
-    console.error(error);
-    res.code(INTERNAL_SERVER_ERROR).send(error);
-  }
-};
-
-const getByOrderId = async (req, res) => {
-  try {
-    const record = await table.OrderModel.getByOrderId(req.params.order_id);
-
-    if (!record) {
-      return res.code(NOT_FOUND).send({ message: "order not found!" });
+      return res.code(NOT_FOUND).send({ message: "Enquiry not found!" });
     }
 
     res.send({ data: record });
@@ -110,19 +87,8 @@ const getByOrderId = async (req, res) => {
 
 const get = async (req, res) => {
   try {
-    const data = await table.OrderModel.get("enquiry");
+    const data = await table.EnquiryModel.get(req);
     res.send({ data: data });
-  } catch (error) {
-    console.error(error);
-    res.code(INTERNAL_SERVER_ERROR).send(error);
-  }
-};
-
-const getOrderItems = async (req, res) => {
-  console.log(req.user_data.id);
-  try {
-    const orders = await table.OrderItemModel.get(req);
-    res.send({ data: orders });
   } catch (error) {
     console.error(error);
     res.code(INTERNAL_SERVER_ERROR).send(error);
@@ -131,13 +97,56 @@ const getOrderItems = async (req, res) => {
 
 const deleteById = async (req, res) => {
   try {
-    const record = await table.OrderModel.getById(req, req.params.id);
+    const record = await table.EnquiryModel.deleteById(req, req.params.id);
 
     if (!record)
-      return res.code(NOT_FOUND).send({ message: "order not found!" });
+      return res.code(NOT_FOUND).send({ message: "Enquiry not found!" });
 
-    await table.OrderModel.deleteById(req, req.params.id);
-    res.send({ message: "order deleted." });
+    res.send({ message: "Enquiry deleted." });
+  } catch (error) {
+    console.error(error);
+    res.code(INTERNAL_SERVER_ERROR).send(error);
+  }
+};
+
+const convertToOrder = async (req, res) => {
+  try {
+    const record = await table.EnquiryModel.getById(req.params.id);
+
+    if (!record)
+      return res.code(NOT_FOUND).send({ message: "Enquiry not found!" });
+
+    const shouldConvertToOrder = record.items
+      .map((item) => item.status)
+      .some((ele) => ele === "partially_available" || ele === "available");
+
+    if (!shouldConvertToOrder)
+      return res
+        .code(400)
+        .send({ message: "This enquiry cannot coverted be to order." });
+
+    const orderId = generateOrderId();
+
+    const order = await table.OrderModel.create({
+      order_id: orderId,
+      user_id: record.user_id,
+    });
+
+    record.items.forEach(
+      async ({ id, product_id, quantity, status, available_quantity }) => {
+        if (status === "partially_available" || status === "available") {
+          // console.log("hello");
+          await table.OrderItemModel.create({
+            order_id: order.id,
+            product_id: product_id,
+            quantity:
+              status === "partially_available" ? available_quantity : quantity,
+            dispatched_quantity: available_quantity,
+            status: "pending",
+          });
+        }
+      }
+    );
   } catch (error) {
     console.error(error);
     res.code(INTERNAL_SERVER_ERROR).send(error);
@@ -146,16 +155,16 @@ const deleteById = async (req, res) => {
 
 const deleteOrderItemById = async (req, res) => {
   try {
-    const record = await table.OrderItemModel.getById(
+    const record = await table.EnquiryItemModel.getById(
       req,
       req.params.order_item_id
     );
 
     if (!record)
-      return res.code(NOT_FOUND).send({ message: "order item not found!" });
+      return res.code(NOT_FOUND).send({ message: "Enquiry item not found!" });
 
-    await table.OrderItemModel.deleteById(req, req.params.order_item_id);
-    res.send({ message: "order item deleted.", data: record });
+    await table.EnquiryItemModel.deleteById(req, req.params.order_item_id);
+    res.send({ message: "Enquiry item deleted.", data: record });
   } catch (error) {
     console.error(error);
     res.code(INTERNAL_SERVER_ERROR).send(error);
@@ -164,11 +173,10 @@ const deleteOrderItemById = async (req, res) => {
 
 export default {
   create: create,
-  get: get,
-  getByOrderId: getByOrderId,
   updateById: updateById,
   deleteById: deleteById,
+  get: get,
   getById: getById,
   deleteOrderItemById: deleteOrderItemById,
-  getOrderItems: getOrderItems,
+  convertToOrder: convertToOrder,
 };

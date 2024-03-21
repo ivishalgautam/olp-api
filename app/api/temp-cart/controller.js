@@ -24,7 +24,7 @@ const create = async (req, res) => {
       product_id: req.body.product_id,
     });
 
-    res.send({ message: "added to cart." });
+    res.send({ message: "Added to cart." });
   } catch (error) {
     console.error(error);
     res.code(INTERNAL_SERVER_ERROR).send(error);
@@ -33,8 +33,8 @@ const create = async (req, res) => {
 
 const get = async (req, res) => {
   try {
-    const products = await table.TempCartModel.get(req);
-    res.send({ data: products });
+    const data = await table.TempCartModel.get(req);
+    res.send({ data: data });
   } catch (error) {
     console.error(error);
     res.code(INTERNAL_SERVER_ERROR).send(error);

@@ -6,10 +6,15 @@ import crypto from "crypto";
 import axios from "axios";
 
 const create = async (req, res) => {
+  // console.log(req.decoded.user.id);
   try {
-    const user = await table.UserModel.getById(req, req.user_data.id);
+    const user = await table.UserModel.getById(
+      req,
+      req.user_data?.id || req.decoded.user.id
+    );
     const otp = crypto.randomInt(100000, 999999);
-    const record = await table.OtpModel.getByUserId(req.user_data.id);
+    const record = await table.OtpModel.getByUserId(user?.id);
+    console.log({ user, otp, record });
 
     let config = {
       method: "post",
@@ -20,7 +25,7 @@ const create = async (req, res) => {
         "Content-Type": "application/json",
       },
       data: JSON.stringify({
-        countryCode: "+91",
+        countryCode: user.country_code,
         phoneNumber: user.mobile_number,
         callbackData: "Otp sent successfully.",
         type: "Template",
@@ -35,10 +40,13 @@ const create = async (req, res) => {
     const resp = await axios(config);
     if (resp.data.result) {
       if (record) {
-        await table.OtpModel.update({ user_id: req.user_data.id, otp: otp });
+        await table.OtpModel.update({
+          user_id: req.user_data?.id || req.decoded.user.id,
+          otp: otp,
+        });
       } else {
         await table.OtpModel.create({
-          user_id: req.user_data.id,
+          user_id: req.user_data?.id || req.decoded.user.id,
           otp: otp,
         });
       }
@@ -53,7 +61,9 @@ const create = async (req, res) => {
 
 const verify = async (req, res) => {
   try {
-    const record = await table.OtpModel.getByUserId(req.user_data.id);
+    const record = await table.OtpModel.getByUserId(
+      req.user_data?.id || req.decoded.user.id
+    );
 
     if (!record) {
       return res
@@ -63,7 +73,9 @@ const verify = async (req, res) => {
 
     const isExpired = moment(record.created_at).add(5, "minutes").isBefore();
     if (isExpired) {
-      await table.OtpModel.deleteByUserId(req.user_data.id);
+      await table.OtpModel.deleteByUserId(
+        req.user_data?.id || req.decoded.user.id
+      );
       return res.code(400).send({ message: "Please resend OTP!" });
     }
 
@@ -71,10 +83,12 @@ const verify = async (req, res) => {
       return res.code(400).send({ message: "Incorrect otp!" });
     }
 
-    await table.OtpModel.deleteByUserId(req.user_data.id);
+    await table.OtpModel.deleteByUserId(
+      req.user_data?.id || req.decoded.user.id
+    );
 
     await table.UserModel.verify({
-      user_id: req.user_data.id,
+      user_id: req.user_data?.id || req.decoded.user.id,
       status: true,
     });
 

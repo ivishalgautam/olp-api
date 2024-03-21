@@ -4,7 +4,8 @@ import { fileURLToPath } from "url";
 import cors from "@fastify/cors";
 import { dirname } from "path";
 import path from "path";
-import fastifyCookie from "@fastify/cookie";
+import fastifyView from "@fastify/view";
+import ejs from "ejs";
 
 // import internal modules
 import authRoutes from "./app/api/auth/routes.js";
@@ -15,6 +16,7 @@ import productController from "./app/api/products/controller.js";
 import categoriesController from "./app/api/categories/controller.js";
 import brandsController from "./app/api/brand/controller.js";
 import queryController from "./app/api/query/controller.js";
+import userController from "./app/api/users/controller.js";
 import { querySchema } from "./app/api/query/routes.js";
 /*
   Register External packages, routes, database connection
@@ -50,6 +52,14 @@ export default (app) => {
   // Increase the payload size limit
   app.register(routes, { prefix: "v1" });
   app.register(authRoutes, { prefix: "v1/auth" });
+
+  app.register(fastifyView, {
+    engine: {
+      ejs: ejs,
+    },
+  });
+
+  app.post("/v1/users", {}, userController.create);
 
   // products
   app.get("/v1/products", {}, productController.get);

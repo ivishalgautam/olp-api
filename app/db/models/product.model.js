@@ -22,6 +22,7 @@ const init = async (sequelize) => {
         unique: true,
       },
       description: { type: DataTypes.TEXT, allowNull: false },
+      custom_description: { type: DataTypes.JSONB, defaultValue: "[]" },
       pictures: { type: DataTypes.ARRAY(DataTypes.TEXT), default: [] },
       tags: { type: DataTypes.ARRAY(DataTypes.STRING), default: [] },
       type: {
@@ -73,6 +74,7 @@ const create = async (req) => {
     title: req.body.title,
     slug: req.body.slug,
     description: req.body.description,
+    custom_description: req.body.custom_description,
     pictures: req.body.pictures,
     tags: req.body.tags,
     type: req.body.type,
@@ -182,6 +184,7 @@ const updateById = async (req, id) => {
       title: req.body.title,
       slug: req.body.slug,
       description: req.body.description,
+      custom_description: req.body.custom_description,
       pictures: req.body.pictures,
       tags: req.body.tags,
       type: req.body.type,
@@ -221,7 +224,7 @@ const getById = async (req, id) => {
 const getBySlug = async (req, slug) => {
   let query = `  
       SELECT
-        prd.id, prd.title, prd.slug, prd.description, prd.pictures, prd.tags, prd.type, prd.sku, prd.brand_id, prd.category_id, prd.status, 
+        prd.id, prd.title, prd.slug, prd.description, prd.custom_description, prd.pictures, prd.tags, prd.type, prd.sku, prd.brand_id, prd.category_id, prd.status, 
         prd.is_featured, prd.meta_title, prd.meta_description, prd.created_at, prd.updated_at, cat.name as category_name,
         CASE
           WHEN COUNT(rp.id) > 0 THEN json_agg(rp.*)
@@ -233,7 +236,7 @@ const getBySlug = async (req, slug) => {
       LEFT JOIN products rp ON rp.id = ANY(prd.related_products)
       WHERE prd.slug = '${req.params.slug || slug}'
       GROUP BY
-        prd.id, prd.title, prd.slug, prd.description, prd.pictures, prd.tags, prd.type, prd.sku, prd.brand_id, prd.category_id, prd.status, 
+        prd.id, prd.title, prd.slug, prd.description, prd.custom_description, prd.pictures, prd.tags, prd.type, prd.sku, prd.brand_id, prd.category_id, prd.status, 
         prd.is_featured, prd.meta_title, prd.meta_description, prd.created_at, prd.updated_at, cat.name;
 `;
   return await ProductModel.sequelize.query(query, {
