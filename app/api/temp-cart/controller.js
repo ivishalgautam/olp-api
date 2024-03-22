@@ -10,7 +10,7 @@ const create = async (req, res) => {
       return res.code(401).send({ message: "Please login first!" });
 
     const record = await table.TempCartModel.getByUserAndProductId({
-      user_id: req.body.user_id ?? req.user_data.id,
+      user_id: req.user_data.id,
       product_id: req.body.product_id,
     });
 
@@ -20,7 +20,7 @@ const create = async (req, res) => {
         .send({ message: "Product exist in the cart!" });
 
     await table.TempCartModel.create({
-      user_id: req.body.user_id ?? req.user_data.id,
+      user_id: req.user_data.id,
       product_id: req.body.product_id,
     });
 

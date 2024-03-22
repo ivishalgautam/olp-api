@@ -9,7 +9,7 @@ import { sendCredentials } from "../../helpers/mailer.js";
 import { fileURLToPath } from "url";
 import authToken from "../../helpers/auth.js";
 import crypto from "crypto";
-import axios from "axios";
+import { sendOtp } from "../../helpers/interaktApi.js";
 
 const create = async (req, res) => {
   try {
@@ -27,30 +27,13 @@ const create = async (req, res) => {
 
     const userData = await table.UserModel.getById(req, data.dataValues.id);
 
-    let config = {
-      method: "post",
-      maxBodyLength: Infinity,
-      url: "https://api.interakt.ai/v1/public/message/",
-      headers: {
-        Authorization: `Basic ${process.env.INTERACT_API_KEY}`,
-        "Content-Type": "application/json",
-      },
-      data: JSON.stringify({
-        countryCode: userData.country_code,
-        phoneNumber: userData.mobile_number,
-        callbackuserData: "Otp sent successfully.",
-        type: "Template",
-        template: {
-          name: process.env.INTERACT_TEMPLATE_NAME,
-          languageCode: "en",
-          bodyValues: [`${userData.first_name} ${userData.last_name}`, otp],
-        },
-      }),
-    };
-
-    const resp = await axios(config);
-
-    console.log(resp.data);
+    const resp = await sendOtp({
+      country_code: userData?.country_code,
+      mobile_number: userData?.mobile_number,
+      first_name: userData?.first_name,
+      last_name: userData?.last_name,
+      otp,
+    });
 
     if (resp.data.result) {
       await table.OtpModel.create({

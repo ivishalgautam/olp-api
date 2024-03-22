@@ -56,14 +56,15 @@ const create = async ({ user_id, product_id }) => {
 
 const get = async (req) => {
   const query = `
-  SELECT 
-     tc.*,
-     prd.title,
-     prd.description,
-     prd.pictures,
-     prd.id as product_id
+    SELECT 
+      tc.*,
+      prd.title,
+      prd.description,
+      prd.pictures,
+      prd.id as product_id
     FROM temp_carts tc
     LEFT JOIN products prd on prd.id = tc.product_id
+    WHERE tc.user_id = '${req.user_data.id}';
   `;
 
   return await TempCartModel.sequelize.query(query, {

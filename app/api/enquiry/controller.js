@@ -4,7 +4,7 @@ import table from "../../db/models.js";
 import {
   generateEnquiryId,
   generateOrderId,
-} from "../../helpers/generateOrderId.js";
+} from "../../helpers/generateId.js";
 
 const { BAD_REQUEST, INTERNAL_SERVER_ERROR, NOT_FOUND } = constants.http.status;
 
