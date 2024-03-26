@@ -28,5 +28,7 @@ export async function sendOtp({
     }),
   };
 
-  return await axios(config);
+  const resp = await axios(config);
+  console.log(resp.data);
+  return resp;
 }

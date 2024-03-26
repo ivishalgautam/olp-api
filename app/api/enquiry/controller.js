@@ -33,10 +33,10 @@ const create = async (req, res) => {
       );
     }
 
-    res.send({ message: "Enquiry sent." });
+    res.send({ status: true, message: "Enquiry sent." });
   } catch (error) {
     console.error(error);
-    res.code(INTERNAL_SERVER_ERROR).send(error);
+    res.code(INTERNAL_SERVER_ERROR).send({ status: false, error });
   }
 };
 
@@ -45,7 +45,9 @@ const updateById = async (req, res) => {
     const record = await table.EnquiryModel.getById(req.params.id);
 
     if (!record) {
-      return res.code(NOT_FOUND).send({ message: "Enquiry not found!" });
+      return res
+        .code(NOT_FOUND)
+        .send({ status: false, message: "Enquiry not found!" });
     }
 
     const data = await table.EnquiryModel.update(req, req.params.id);
@@ -63,10 +65,10 @@ const updateById = async (req, res) => {
       );
     }
 
-    res.send({ message: "Updated" });
+    res.send({ status: true, message: "Updated" });
   } catch (error) {
     console.error(error);
-    res.code(INTERNAL_SERVER_ERROR).send(error);
+    res.code(INTERNAL_SERVER_ERROR).send({ status: false, error });
   }
 };
 
@@ -75,23 +77,25 @@ const getById = async (req, res) => {
     const record = await table.EnquiryModel.getById(req.params.id);
 
     if (!record) {
-      return res.code(NOT_FOUND).send({ message: "Enquiry not found!" });
+      return res
+        .code(NOT_FOUND)
+        .send({ status: false, message: "Enquiry not found!" });
     }
 
-    res.send({ data: record });
+    res.send({ status: true, data: record });
   } catch (error) {
     console.error(error);
-    res.code(INTERNAL_SERVER_ERROR).send(error);
+    res.code(INTERNAL_SERVER_ERROR).send({ status: false, error });
   }
 };
 
 const get = async (req, res) => {
   try {
     const data = await table.EnquiryModel.get(req);
-    res.send({ data: data });
+    res.send({ status: true, data: data });
   } catch (error) {
     console.error(error);
-    res.code(INTERNAL_SERVER_ERROR).send(error);
+    res.code(INTERNAL_SERVER_ERROR).send({ status: false, error });
   }
 };
 
@@ -100,12 +104,14 @@ const deleteById = async (req, res) => {
     const record = await table.EnquiryModel.deleteById(req, req.params.id);
 
     if (!record)
-      return res.code(NOT_FOUND).send({ message: "Enquiry not found!" });
+      return res
+        .code(NOT_FOUND)
+        .send({ status: false, message: "Enquiry not found!" });
 
-    res.send({ message: "Enquiry deleted." });
+    res.send({ status: true, message: "Enquiry deleted." });
   } catch (error) {
     console.error(error);
-    res.code(INTERNAL_SERVER_ERROR).send(error);
+    res.code(INTERNAL_SERVER_ERROR).send({ status: false, error });
   }
 };
 
@@ -114,7 +120,9 @@ const convertToOrder = async (req, res) => {
     const record = await table.EnquiryModel.getById(req.params.id);
 
     if (!record)
-      return res.code(NOT_FOUND).send({ message: "Enquiry not found!" });
+      return res
+        .code(NOT_FOUND)
+        .send({ status: false, message: "Enquiry not found!" });
 
     const shouldConvertToOrder = record.items
       .map((item) => item.status)
@@ -149,7 +157,7 @@ const convertToOrder = async (req, res) => {
     );
   } catch (error) {
     console.error(error);
-    res.code(INTERNAL_SERVER_ERROR).send(error);
+    res.code(INTERNAL_SERVER_ERROR).send({ status: false, error });
   }
 };
 
@@ -161,13 +169,15 @@ const deleteOrderItemById = async (req, res) => {
     );
 
     if (!record)
-      return res.code(NOT_FOUND).send({ message: "Enquiry item not found!" });
+      return res
+        .code(NOT_FOUND)
+        .send({ status: false, message: "Enquiry item not found!" });
 
     await table.EnquiryItemModel.deleteById(req, req.params.order_item_id);
-    res.send({ message: "Enquiry item deleted.", data: record });
+    res.send({ status: true, message: "Enquiry item deleted.", data: record });
   } catch (error) {
     console.error(error);
-    res.code(INTERNAL_SERVER_ERROR).send(error);
+    res.code(INTERNAL_SERVER_ERROR).send({ status: false, error });
   }
 };
 

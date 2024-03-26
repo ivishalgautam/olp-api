@@ -20,10 +20,10 @@ const create = async (req, res) => {
 
     const product = await table.ProductModel.create(req);
 
-    res.send({ data: product });
+    res.send({ status: true, data: product });
   } catch (error) {
     console.error(error);
-    res.code(INTERNAL_SERVER_ERROR).send(error);
+    res.code(INTERNAL_SERVER_ERROR).send({ status: false, error });
   }
 };
 
@@ -37,7 +37,9 @@ const updateById = async (req, res) => {
     const record = await table.ProductModel.getById(req, req.params.id);
 
     if (!record) {
-      return res.code(NOT_FOUND).send({ message: "Product not found!" });
+      return res
+        .code(NOT_FOUND)
+        .send({ status: false, message: "Product not found!" });
     }
 
     const slugExist = await table.ProductModel.getBySlug(req, req.body.slug);
@@ -50,10 +52,10 @@ const updateById = async (req, res) => {
 
     await table.ProductModel.updateById(req, req.params.id);
 
-    res.send({ message: "Product updated." });
+    res.send({ status: true, message: "Product updated." });
   } catch (error) {
     console.error(error);
-    res.code(INTERNAL_SERVER_ERROR).send(error);
+    res.code(INTERNAL_SERVER_ERROR).send({ status: false, error });
   }
 };
 
@@ -62,13 +64,15 @@ const getBySlug = async (req, res) => {
     const record = await table.ProductModel.getBySlug(req, req.params.slug);
 
     if (!record) {
-      return res.code(NOT_FOUND).send({ message: "Product not found!" });
+      return res
+        .code(NOT_FOUND)
+        .send({ status: false, message: "Product not found!" });
     }
 
-    res.send({ data: record });
+    res.send({ status: true, data: record });
   } catch (error) {
     console.error(error);
-    res.code(INTERNAL_SERVER_ERROR).send(error);
+    res.code(INTERNAL_SERVER_ERROR).send({ status: false, error });
   }
 };
 
@@ -77,16 +81,18 @@ const getByCategory = async (req, res) => {
     const record = await table.CategoryModel.getBySlug(req, req.params.slug);
 
     if (!record) {
-      return res.code(NOT_FOUND).send({ message: "Category not found!" });
+      return res
+        .code(NOT_FOUND)
+        .send({ status: false, message: "Category not found!" });
     }
 
     const { products, total_page, page } =
       await table.ProductModel.getByCategory(req, req.params.slug);
 
-    res.send({ page, total_page, data: products });
+    res.send({ status: true, page, total_page, data: products });
   } catch (error) {
     console.error(error);
-    res.code(INTERNAL_SERVER_ERROR).send(error);
+    res.code(INTERNAL_SERVER_ERROR).send({ status: false, error });
   }
 };
 
@@ -95,7 +101,9 @@ const getByBrand = async (req, res) => {
     const record = await table.BrandModel.getBySlug(req, req.params.slug);
 
     if (!record) {
-      return res.code(NOT_FOUND).send({ message: "Brand not found!" });
+      return res
+        .code(NOT_FOUND)
+        .send({ status: false, message: "Brand not found!" });
     }
 
     const { products, total_page, page } = await table.ProductModel.getByBrand(
@@ -103,10 +111,10 @@ const getByBrand = async (req, res) => {
       req.params.slug
     );
 
-    res.send({ page, total_page, data: products });
+    res.send({ status: true, page, total_page, data: products });
   } catch (error) {
     console.error(error);
-    res.code(INTERNAL_SERVER_ERROR).send(error);
+    res.code(INTERNAL_SERVER_ERROR).send({ status: false, error });
   }
 };
 
@@ -115,7 +123,9 @@ const getById = async (req, res) => {
     const record = await table.ProductModel.getById(req, req.params.id);
 
     if (!record) {
-      return res.code(NOT_FOUND).send({ message: "Product not found!" });
+      return res
+        .code(NOT_FOUND)
+        .send({ status: false, message: "Product not found!" });
     }
 
     const data = {
@@ -125,20 +135,20 @@ const getById = async (req, res) => {
           (so) => !Object.values(so).every((d) => d === null)
         ) ?? [],
     };
-    res.send({ data: data });
+    res.send({ status: true, data: data });
   } catch (error) {
     console.error(error);
-    res.code(INTERNAL_SERVER_ERROR).send(error);
+    res.code(INTERNAL_SERVER_ERROR).send({ status: false, error });
   }
 };
 
 const get = async (req, res) => {
   try {
     const { data, page, total_page } = await table.ProductModel.get(req);
-    res.send({ data, page, total_page });
+    res.send({ status: true, data, page, total_page });
   } catch (error) {
     console.error(error);
-    res.code(INTERNAL_SERVER_ERROR).send(error);
+    res.code(INTERNAL_SERVER_ERROR).send({ status: false, error });
   }
 };
 
@@ -150,10 +160,10 @@ const deleteById = async (req, res) => {
       return res.code(NOT_FOUND).send({ message: "Product not found!" });
 
     await table.ProductModel.deleteById(req, req.params.id);
-    res.send({ message: "Product deleted." });
+    res.send({ status: true, message: "Product deleted." });
   } catch (error) {
     console.error(error);
-    res.code(INTERNAL_SERVER_ERROR).send(error);
+    res.code(INTERNAL_SERVER_ERROR).send({ status: false, error });
   }
 };
 
@@ -162,7 +172,9 @@ const publishProductById = async (req, res) => {
     const record = await table.ProductModel.getById(req, req.params.id);
 
     if (!record)
-      return res.code(NOT_FOUND).send({ message: "Product not found!" });
+      return res
+        .code(NOT_FOUND)
+        .send({ status: false, message: "Product not found!" });
 
     const data = await table.ProductModel.publishProductById(
       req.params.id,
@@ -170,23 +182,24 @@ const publishProductById = async (req, res) => {
     );
 
     res.send({
+      status: true,
       message: data?.is_published
         ? "Product published."
         : "Product unpublished.",
     });
   } catch (error) {
     console.error(error);
-    res.code(INTERNAL_SERVER_ERROR).send(error);
+    res.code(INTERNAL_SERVER_ERROR).send({ status: false, error });
   }
 };
 
 const searchProducts = async (req, res) => {
   try {
     const data = await table.ProductModel.searchProducts(req);
-    res.send(data);
+    res.send({ status: true, data });
   } catch (error) {
     console.error(error);
-    res.code(INTERNAL_SERVER_ERROR).send(error);
+    res.code(INTERNAL_SERVER_ERROR).send({ status: false, error });
   }
 };
 

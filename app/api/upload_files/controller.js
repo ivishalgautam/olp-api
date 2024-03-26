@@ -48,17 +48,19 @@ const uploadFiles = async (req, res) => {
       path.push(await pump(file.file, fs.createWriteStream(filePath)).path);
     }
     return res.send({
+      status: true,
       path: path,
     });
   } catch (error) {
     console.log(error);
-    return res.send(error);
+    return res.code(500).send({ status: false, error });
   }
 };
 
 const getFile = async (req, res) => {
   if (!req.query || !req.query.file_path) {
-    return res.send({
+    return res.code(400).send({
+      status: false,
       message: "file_path is required parameter",
     });
   }
@@ -73,7 +75,7 @@ const getFile = async (req, res) => {
 
   if (!fs.existsSync(publicPath)) {
     console.log("file not found");
-    return res.code(404).send({ message: "file not found" });
+    return res.code(404).send({ status: false, message: "file not found" });
   }
 
   let mime = req.query.file_path.split(".").pop();
@@ -106,7 +108,7 @@ const getFile = async (req, res) => {
 
   try {
     const filePath = await fs.readFileSync(publicPath);
-    return res.send(filePath);
+    return res.send({ status: true, data: filePath });
   } catch (error) {
     console.error({ error });
   }
@@ -130,11 +132,11 @@ const deleteFile = async (req, res) => {
     console.log({ publicPath });
     if (fs.existsSync(publicPath)) {
       fs.unlinkSync(publicPath);
-      res.send({ message: "File deleted" });
+      res.send({ status: true, message: "File deleted" });
     }
   } catch (error) {
     console.error(error);
-    res.code(500).send(error);
+    res.code(500).send({ status: false, error });
   }
 };
 

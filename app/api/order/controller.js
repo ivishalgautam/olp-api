@@ -29,10 +29,10 @@ const create = async (req, res) => {
       );
     }
 
-    res.send({ message: "Enquiry sent." });
+    res.send({ status: true, message: "Enquiry sent." });
   } catch (error) {
     console.error(error);
-    res.code(INTERNAL_SERVER_ERROR).send(error);
+    res.code(INTERNAL_SERVER_ERROR).send({ status: false, error });
   }
 };
 
@@ -41,7 +41,9 @@ const updateById = async (req, res) => {
     const record = await table.OrderModel.getById(req.params.id);
 
     if (!record) {
-      return res.code(NOT_FOUND).send({ message: "Order not found!" });
+      return res
+        .code(NOT_FOUND)
+        .send({ status: false, message: "Order not found!" });
     }
 
     const data = await table.OrderModel.update(req, req.params.id);
@@ -60,10 +62,10 @@ const updateById = async (req, res) => {
       );
     }
 
-    res.send({ message: "updated" });
+    res.send({ status: true, message: "updated" });
   } catch (error) {
     console.error(error);
-    res.code(INTERNAL_SERVER_ERROR).send(error);
+    res.code(INTERNAL_SERVER_ERROR).send({ status: false, error });
   }
 };
 
@@ -72,23 +74,25 @@ const getById = async (req, res) => {
     const record = await table.OrderModel.getById(req.params.id);
 
     if (!record) {
-      return res.code(NOT_FOUND).send({ message: "order not found!" });
+      return res
+        .code(NOT_FOUND)
+        .send({ status: false, message: "order not found!" });
     }
 
-    res.send({ data: record });
+    res.send({ status: true, data: record });
   } catch (error) {
     console.error(error);
-    res.code(INTERNAL_SERVER_ERROR).send(error);
+    res.code(INTERNAL_SERVER_ERROR).send({ status: false, error });
   }
 };
 
 const get = async (req, res) => {
   try {
     const data = await table.OrderModel.get(req);
-    res.send({ data: data });
+    res.send({ status: true, data: data });
   } catch (error) {
     console.error(error);
-    res.code(INTERNAL_SERVER_ERROR).send(error);
+    res.code(INTERNAL_SERVER_ERROR).send({ status: false, error });
   }
 };
 
@@ -97,12 +101,14 @@ const deleteById = async (req, res) => {
     const record = await table.OrderModel.deleteById(req, req.params.id);
 
     if (!record)
-      return res.code(NOT_FOUND).send({ message: "order not found!" });
+      return res
+        .code(NOT_FOUND)
+        .send({ status: false, message: "order not found!" });
 
-    res.send({ message: "order deleted." });
+    res.send({ status: true, message: "order deleted." });
   } catch (error) {
     console.error(error);
-    res.code(INTERNAL_SERVER_ERROR).send(error);
+    res.code(INTERNAL_SERVER_ERROR).send({ status: false, error });
   }
 };
 
@@ -114,13 +120,15 @@ const deleteOrderItemById = async (req, res) => {
     );
 
     if (!record)
-      return res.code(NOT_FOUND).send({ message: "order item not found!" });
+      return res
+        .code(NOT_FOUND)
+        .send({ status: false, message: "order item not found!" });
 
     await table.OrderItemModel.deleteById(req, req.params.order_item_id);
-    res.send({ message: "order item deleted.", data: record });
+    res.send({ status: true, message: "order item deleted.", data: record });
   } catch (error) {
     console.error(error);
-    res.code(INTERNAL_SERVER_ERROR).send(error);
+    res.code(INTERNAL_SERVER_ERROR).send({ status: false, error });
   }
 };
 

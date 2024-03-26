@@ -14,15 +14,16 @@ import { sendOtp } from "../../helpers/interaktApi.js";
 const create = async (req, res) => {
   try {
     const record = await table.UserModel.getByUsername(req);
-    const otp = crypto.randomInt(100000, 999999);
 
     if (record) {
       return res.code(409).send({
+        status: false,
         message:
           "User already exists with username. Please try with different username",
       });
     }
 
+    const otp = crypto.randomInt(100000, 999999);
     const data = await table.UserModel.create(req);
 
     const userData = await table.UserModel.getById(req, data.dataValues.id);
@@ -46,6 +47,7 @@ const create = async (req, res) => {
     const refreshToken = authToken.generateRefreshToken(userData);
 
     return res.send({
+      status: true,
       token: jwtToken,
       expire_time: Date.now() + expiresIn,
       refresh_token: refreshToken,
@@ -53,7 +55,7 @@ const create = async (req, res) => {
     });
   } catch (error) {
     console.error(error);
-    return res.send(error);
+    return res.code(500).send({ status: false, error });
   }
 };
 
@@ -62,7 +64,7 @@ const update = async (req, res) => {
     console.log(req.body);
     const record = await table.UserModel.getById(req);
     if (!record) {
-      return res.code(404).send({ message: "User not exists" });
+      return res.code(404).send({ status: false, message: "User not exists" });
     }
 
     const user = await table.UserModel.update(req);
@@ -71,10 +73,10 @@ const update = async (req, res) => {
       req.body.new_password = req.body.password;
       await table.UserModel.updatePassword(req, req.user_data.id);
     }
-    return res.send("Updated");
+    return res.send({ status: true, message: "Updated" });
   } catch (error) {
     console.error(error);
-    return res.send(error);
+    return res.code(500).send({ status: false, error });
   }
 };
 
@@ -82,7 +84,7 @@ const updateStatus = async (req, res) => {
   try {
     const record = await table.UserModel.getById(req);
     if (!record) {
-      return res.code(404).send({ message: "User not exists" });
+      return res.code(404).send({ status: false, message: "User not exists" });
     }
     const data = await table.UserModel.updateStatus(
       req.params.id,
@@ -113,11 +115,12 @@ const updateStatus = async (req, res) => {
     }
 
     res.send({
+      status: true,
       message: data?.is_active ? "Customer Active." : "Customer Inactive.",
     });
   } catch (error) {
     console.error(error);
-    return res.send(error);
+    return res.code(500).send({ status: false, error });
   }
 };
 
@@ -125,22 +128,22 @@ const deleteById = async (req, res) => {
   try {
     const record = await table.UserModel.deleteById(req);
     if (record === 0) {
-      return res.code(404).send({ message: "User not exists" });
+      return res.code(404).send({ status: false, message: "User not exists" });
     }
 
-    return res.send(record);
+    return res.send({ status: true, data: record });
   } catch (error) {
     console.error(error);
-    return res.send(error);
+    return res.code(500).send({ status: false, error });
   }
 };
 
 const get = async (req, res) => {
   try {
-    return res.send({ data: await table.UserModel.get() });
+    return res.send({ status: true, data: await table.UserModel.get() });
   } catch (error) {
     console.error(error);
-    return res.send(error);
+    return res.code(500).send({ status: false, error });
   }
 };
 
@@ -148,14 +151,14 @@ const getById = async (req, res) => {
   try {
     const record = await table.UserModel.getById(req);
     if (!record) {
-      return res.code(404).send({ message: "User not exists" });
+      return res.code(404).send({ status: false, message: "User not exists" });
     }
     delete record.password;
 
-    return res.send(record);
+    return res.send({ status: true, record });
   } catch (error) {
     console.error(error);
-    return res.send(error);
+    return res.code(500).send({ status: false, error });
   }
 };
 
@@ -164,7 +167,7 @@ const updatePassword = async (req, res) => {
     const record = await table.UserModel.getById(req);
 
     if (!record) {
-      return res.code(404).send({ message: "User not exists" });
+      return res.code(404).send({ status: false, message: "User not exists" });
     }
 
     const verify_old_password = await hash.verify(
@@ -180,11 +183,12 @@ const updatePassword = async (req, res) => {
 
     await table.UserModel.updatePassword(req);
     return res.send({
+      status: true,
       message: "Password changed successfully!",
     });
   } catch (error) {
     console.error(error);
-    return res.send(error);
+    return res.code(500).send({ status: false, error });
   }
 };
 
@@ -193,15 +197,16 @@ const checkUsername = async (req, res) => {
     const user = await table.UserModel.getByUsername(req);
     if (user) {
       return res.code(409).send({
+        status: false,
         message: "username already exists try with different username",
       });
     }
     return res.send({
-      message: false,
+      status: true,
     });
   } catch (error) {
     console.error(error);
-    return res.send(error);
+    return res.code(500).send({ status: false, error });
   }
 };
 
@@ -209,12 +214,13 @@ const getUser = async (req, res) => {
   try {
     const record = await table.UserModel.getById(undefined, req.user_data.id);
     if (!record) {
-      return res.code(401).send({ messaege: "invalid token" });
+      return res.code(401).send({ status: false, messaege: "invalid token" });
     }
+
     return res.send(req.user_data);
   } catch (error) {
     console.error(error);
-    return res.send(error);
+    return res.code(500).send({ status: false, error });
   }
 };
 
@@ -222,16 +228,17 @@ const resetPassword = async (req, res) => {
   try {
     const token = await table.UserModel.getByResetToken(req);
     if (!token) {
-      return res.code(401).send({ message: "invalid url" });
+      return res.code(401).send({ status: false, message: "invalid url" });
     }
 
     await table.UserModel.updatePassword(req, token.id);
     return res.send({
+      status: true,
       message: "Password reset successfully!",
     });
   } catch (error) {
     console.error(error);
-    return res.send(error);
+    return res.code(500).send({ status: false, error });
   }
 };
 export default {

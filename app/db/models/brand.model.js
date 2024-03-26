@@ -23,6 +23,10 @@ const init = async (sequelize) => {
         type: DataTypes.STRING,
         allowNull: false,
       },
+      is_featured: {
+        type: DataTypes.BOOLEAN,
+        defaultValue: false,
+      },
     },
     {
       createdAt: "created_at",
@@ -36,13 +40,47 @@ const init = async (sequelize) => {
 const create = async (req) => {
   return await BrandModel.create({
     name: req.body.name,
+    is_featured: req.body.is_featured,
     slug: req.body.slug,
   });
 };
 
 const get = async (req) => {
-  return await BrandModel.findAll({
+  let whereConditions = [];
+  const queryParams = {};
+
+  if (req.query.featured) {
+    whereConditions.push("b.is_featured = true");
+  }
+
+  let whereClause = "";
+  if (whereConditions.length > 0) {
+    whereClause = `WHERE ${whereConditions.join(" AND ")}`;
+  }
+
+  let query = `
+  SELECT 
+      b.id,
+      b.name,
+      b.slug,
+      b.is_featured,
+      COUNT(prd.id) as products
+    FROM
+      brands b
+      LEFT JOIN products prd ON prd.brand_id = b.id
+      ${whereClause}
+    GROUP BY
+      b.id,
+      b.name,
+      b.slug,
+      b.is_featured
+  `;
+
+  return await BrandModel.sequelize.query(query, {
+    replacements: {},
+    type: QueryTypes.SELECT,
     order: [["created_at", "DESC"]],
+    raw: true,
   });
 };
 
@@ -50,6 +88,7 @@ const update = async (req, id) => {
   const [rowCount, rows] = await BrandModel.update(
     {
       name: req.body.name,
+      is_featured: req.body.is_featured,
       slug: req.body.slug,
     },
     {

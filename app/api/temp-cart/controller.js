@@ -7,7 +7,9 @@ const { BAD_REQUEST, INTERNAL_SERVER_ERROR, NOT_FOUND } = constants.http.status;
 const create = async (req, res) => {
   try {
     if (!req?.user_data?.id)
-      return res.code(401).send({ message: "Please login first!" });
+      return res
+        .code(401)
+        .send({ status: false, message: "Please login first!" });
 
     const record = await table.TempCartModel.getByUserAndProductId({
       user_id: req.user_data.id,
@@ -24,20 +26,20 @@ const create = async (req, res) => {
       product_id: req.body.product_id,
     });
 
-    res.send({ message: "Added to cart." });
+    res.send({ status: true, message: "Added to cart." });
   } catch (error) {
     console.error(error);
-    res.code(INTERNAL_SERVER_ERROR).send(error);
+    res.code(INTERNAL_SERVER_ERROR).send({ status: false, error });
   }
 };
 
 const get = async (req, res) => {
   try {
     const data = await table.TempCartModel.get(req);
-    res.send({ data: data });
+    res.send({ status: true, data: data });
   } catch (error) {
     console.error(error);
-    res.code(INTERNAL_SERVER_ERROR).send(error);
+    res.code(INTERNAL_SERVER_ERROR).send({ status: false, error });
   }
 };
 
@@ -45,11 +47,11 @@ const deleteById = async (req, res) => {
   try {
     const record = await table.TempCartModel.getById(req);
     await table.TempCartModel.deleteById(req);
-    console.log({ record });
-    res.send({ message: "Item removed", data: record });
+    // console.log({ record });
+    res.send({ status: true, message: "Item removed", data: record });
   } catch (error) {
     console.error(error);
-    res.code(INTERNAL_SERVER_ERROR).send(error);
+    res.code(INTERNAL_SERVER_ERROR).send({ status: false, error });
   }
 };
 

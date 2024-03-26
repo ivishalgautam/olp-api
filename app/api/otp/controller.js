@@ -3,7 +3,7 @@ import constants from "../../lib/constants/index.js";
 import table from "../../db/models.js";
 import moment from "moment";
 import crypto from "crypto";
-import axios from "axios";
+import { sendOtp } from "../../helpers/interaktApi.js";
 
 const create = async (req, res) => {
   // console.log(req.decoded.user.id);
@@ -14,30 +14,15 @@ const create = async (req, res) => {
     );
     const otp = crypto.randomInt(100000, 999999);
     const record = await table.OtpModel.getByUserId(user?.id);
-    console.log({ user, otp, record });
 
-    let config = {
-      method: "post",
-      maxBodyLength: Infinity,
-      url: "https://api.interakt.ai/v1/public/message/",
-      headers: {
-        Authorization: `Basic ${process.env.INTERACT_API_KEY}`,
-        "Content-Type": "application/json",
-      },
-      data: JSON.stringify({
-        countryCode: user.country_code,
-        phoneNumber: user.mobile_number,
-        callbackData: "Otp sent successfully.",
-        type: "Template",
-        template: {
-          name: process.env.INTERACT_TEMPLATE_NAME,
-          languageCode: "en",
-          bodyValues: [`${user.first_name} ${user.last_name}`, otp],
-        },
-      }),
-    };
+    const resp = await sendOtp({
+      country_code: user.country_code,
+      first_name: user.first_name,
+      last_name: user.last_name,
+      mobile_number: user.mobile_number,
+      otp: otp,
+    });
 
-    const resp = await axios(config);
     if (resp.data.result) {
       if (record) {
         await table.OtpModel.update({
@@ -52,10 +37,12 @@ const create = async (req, res) => {
       }
     }
 
-    res.send({ message: "Otp sent" });
+    res.send({ status: true, message: "Otp sent" });
   } catch (error) {
     console.error(error);
-    res.code(constants.http.status.INTERNAL_SERVER_ERROR).send(error);
+    res
+      .code(constants.http.status.INTERNAL_SERVER_ERROR)
+      .send({ status: false, error });
   }
 };
 
@@ -76,11 +63,13 @@ const verify = async (req, res) => {
       await table.OtpModel.deleteByUserId(
         req.user_data?.id || req.decoded.user.id
       );
-      return res.code(400).send({ message: "Please resend OTP!" });
+      return res
+        .code(400)
+        .send({ status: false, message: "Please resend OTP!" });
     }
 
     if (record.otp != req.params.otp) {
-      return res.code(400).send({ message: "Incorrect otp!" });
+      return res.code(400).send({ status: false, message: "Incorrect otp!" });
     }
 
     await table.OtpModel.deleteByUserId(
@@ -92,10 +81,12 @@ const verify = async (req, res) => {
       status: true,
     });
 
-    res.send({ message: "Otp verified." });
+    res.send({ status: true, message: "Otp verified." });
   } catch (error) {
     console.error(error);
-    res.code(constants.http.status.INTERNAL_SERVER_ERROR).send(error);
+    res
+      .code(constants.http.status.INTERNAL_SERVER_ERROR)
+      .send({ status: false, error });
   }
 };
 

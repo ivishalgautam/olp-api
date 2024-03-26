@@ -2,6 +2,17 @@
 import controller from "./controller.js";
 import userController from "../users/controller.js";
 
+const schema = {
+  body: {
+    type: "object",
+    properties: {
+      name: { type: "string" },
+      image: { type: "string" },
+    },
+    required: ["name"],
+  },
+};
+
 export default async function routes(fastify, options) {
   fastify.post("/login", {}, controller.verifyUserCredentials);
   fastify.post("/signup", {}, controller.createNewUser);

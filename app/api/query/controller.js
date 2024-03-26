@@ -8,10 +8,10 @@ const { BAD_REQUEST, INTERNAL_SERVER_ERROR, NOT_FOUND } = constants.http.status;
 const create = async (req, res) => {
   try {
     await table.QueryModel.create(req);
-    res.send({ message: "Query sent." });
+    res.send({ status: true, message: "Query sent." });
   } catch (error) {
     console.error(error);
-    res.code(INTERNAL_SERVER_ERROR).send(error);
+    res.code(INTERNAL_SERVER_ERROR).send({ status: false, error });
   }
 };
 
@@ -20,23 +20,25 @@ const getById = async (req, res) => {
     const record = await table.QueryModel.getById(req, req.params.id);
 
     if (!record) {
-      return res.code(NOT_FOUND).send({ message: "Query not found!" });
+      return res
+        .code(NOT_FOUND)
+        .send({ status: false, message: "Query not found!" });
     }
 
-    res.send({ data: record });
+    res.send({ status: true, data: record });
   } catch (error) {
     console.error(error);
-    res.code(INTERNAL_SERVER_ERROR).send(error);
+    res.code(INTERNAL_SERVER_ERROR).send({ status: false, error });
   }
 };
 
 const get = async (req, res) => {
   try {
     const queries = await table.QueryModel.get(req);
-    res.send({ data: queries });
+    res.send({ status: true, data: queries });
   } catch (error) {
     console.error(error);
-    res.code(INTERNAL_SERVER_ERROR).send(error);
+    res.code(INTERNAL_SERVER_ERROR).send({ status: false, error });
   }
 };
 
@@ -45,13 +47,15 @@ const deleteById = async (req, res) => {
     const record = await table.QueryModel.getById(req, req.params.id);
 
     if (!record)
-      return res.code(NOT_FOUND).send({ message: "Query not found!" });
+      return res
+        .code(NOT_FOUND)
+        .send({ status: false, message: "Query not found!" });
 
     await table.QueryModel.deleteById(req, req.params.id);
-    res.send({ message: "Query deleted." });
+    res.send({ status: true, message: "Query deleted." });
   } catch (error) {
     console.error(error);
-    res.code(INTERNAL_SERVER_ERROR).send(error);
+    res.code(INTERNAL_SERVER_ERROR).send({ status: false, error });
   }
 };
 
