@@ -179,6 +179,7 @@ const get = async (req) => {
 };
 
 const updateById = async (req, id) => {
+  // bdh
   const [rowCount, rows] = await ProductModel.update(
     {
       title: req.body?.title,
