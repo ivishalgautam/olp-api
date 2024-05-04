@@ -155,7 +155,7 @@ const getById = async (req, res) => {
     }
     delete record.password;
 
-    return res.send({ status: true, record });
+    return res.send({ status: true, data: record });
   } catch (error) {
     console.error(error);
     return res.code(500).send({ status: false, error });
