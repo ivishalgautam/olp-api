@@ -6,7 +6,6 @@ import crypto from "crypto";
 import { sendOtp } from "../../helpers/interaktApi.js";
 
 const create = async (req, res) => {
-  // console.log(req.decoded.user.id);
   try {
     const user = await table.UserModel.getById(
       req,

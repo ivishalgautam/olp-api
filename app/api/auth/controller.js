@@ -99,7 +99,6 @@ const createNewUser = async (req, res) => {
 };
 
 const verifyRefreshToken = async (req, res) => {
-  // console.log({ cookies: req.cookies });
   return authToken.verifyRefreshToken(req, res);
 };
 

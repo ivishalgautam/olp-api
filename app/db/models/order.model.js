@@ -1,6 +1,6 @@
 "use strict";
 import constants from "../../lib/constants/index.js";
-import sequelizeFwk, { where } from "sequelize";
+import sequelizeFwk, { Op, where } from "sequelize";
 
 const { DataTypes, QueryTypes, Deferrable } = sequelizeFwk;
 
@@ -157,6 +157,27 @@ const countOrders = async (last_30_days = false) => {
   });
 };
 
+const countOrderStats = async () => {
+  return await OrderModel.findAll({
+    attributes: [
+      [
+        sequelizeFwk.fn("DATE_TRUNC", "month", sequelizeFwk.col("created_at")),
+        "date",
+      ],
+      [sequelizeFwk.fn("COUNT", sequelizeFwk.col("id")), "Orders"],
+    ],
+    where: {
+      created_at: {
+        [Op.gte]: sequelizeFwk.literal("CURRENT_DATE - INTERVAL '12 months'"),
+      },
+    },
+    group: [
+      sequelizeFwk.fn("DATE_TRUNC", "month", sequelizeFwk.col("created_at")),
+    ],
+    raw: true,
+  });
+};
+
 export default {
   init: init,
   create: create,
@@ -165,4 +186,5 @@ export default {
   getById: getById,
   deleteById: deleteById,
   countOrders: countOrders,
+  countOrderStats: countOrderStats,
 };

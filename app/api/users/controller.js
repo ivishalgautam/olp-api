@@ -5,7 +5,7 @@ import hash from "../../lib/encryption/index.js";
 import ejs from "ejs";
 import fs from "fs";
 import path from "path";
-import { sendCredentials } from "../../helpers/mailer.js";
+// import { sendCredentials } from "../../helpers/mailer.js";
 import { fileURLToPath } from "url";
 import authToken from "../../helpers/auth.js";
 import crypto from "crypto";
@@ -61,7 +61,6 @@ const create = async (req, res) => {
 
 const update = async (req, res) => {
   try {
-    console.log(req.body);
     const record = await table.UserModel.getById(req);
     if (!record) {
       return res.code(404).send({ status: false, message: "User not exists" });
@@ -111,7 +110,7 @@ const updateStatus = async (req, res) => {
         password: 1234,
       });
 
-      await sendCredentials(template, data?.email);
+      // await sendCredentials(template, data?.email);
     }
 
     res.send({

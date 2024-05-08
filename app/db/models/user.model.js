@@ -121,7 +121,6 @@ const getById = async (req, user_id) => {
 };
 
 const getByUsername = async (req, record = undefined) => {
-  console.log(req.body);
   return await UserModel.findOne({
     where: {
       username: req?.body?.username || record?.user?.username,

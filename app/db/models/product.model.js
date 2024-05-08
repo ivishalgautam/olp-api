@@ -69,7 +69,6 @@ const init = async (sequelize) => {
 };
 
 const create = async (req) => {
-  // return console.log({ body: req.body });
   return await ProductModel.create({
     title: req.body.title,
     slug: req.body.slug,
@@ -374,16 +373,39 @@ const publishProductById = async (id, value) => {
 };
 
 const countProducts = async (last_30_days = false) => {
-  return await ProductModel.findAll({
-    attributes: [
-      [
-        ProductModel.sequelize.fn("COUNT", ProductModel.sequelize.col("id")),
-        "total_products",
-      ],
-    ],
-    plain: true,
-    raw: true,
-  });
+  let whereClause = {};
+  let resultObj = {};
+
+  if (last_30_days) {
+    whereClause = {
+      created_at: {
+        [Op.gte]: moment().subtract(30, "days").toDate(),
+      },
+    };
+  }
+
+  const conditions = [
+    { status: "published" },
+    { status: "draft" },
+    { status: "pending" },
+  ];
+
+  const results = await Promise.all(
+    conditions.map(async (condition) => {
+      const count = await ProductModel.count({
+        where: {
+          ...whereClause,
+          ...condition,
+        },
+      });
+      return {
+        [condition.status]: count.toString(),
+      };
+    })
+  );
+
+  results.map((item) => Object.assign(resultObj, item));
+  return resultObj;
 };
 
 const searchProducts = async (req) => {

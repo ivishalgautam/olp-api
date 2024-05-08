@@ -143,7 +143,6 @@ const convertToOrder = async (req, res) => {
     record.items.forEach(
       async ({ id, product_id, quantity, status, available_quantity }) => {
         if (status === "partially_available" || status === "available") {
-          // console.log("hello");
           await table.OrderItemModel.create({
             order_id: order.id,
             product_id: product_id,
