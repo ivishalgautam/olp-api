@@ -36,7 +36,7 @@ const verifyUserCredentials = async (req, res) => {
     const [jwtToken, expiresIn] = authToken.generateAccessToken(userData);
     const refreshToken = authToken.generateRefreshToken(userData);
 
-    return res.send({
+    return res.code(401).send({
       status: true,
       token: jwtToken,
       expire_time: Date.now() + expiresIn,
