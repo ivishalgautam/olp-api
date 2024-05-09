@@ -1,9 +1,9 @@
 import moment from "moment";
 
-export function mergeArrays(arr1, arr2) {
+export function mergeArrays(enquiries, orders) {
   const merged = {};
 
-  arr1.forEach((item) => {
+  enquiries.forEach((item) => {
     const date = moment(item.date).format("MMM YY");
     if (!merged[date]) {
       merged[date] = { date };
@@ -12,7 +12,7 @@ export function mergeArrays(arr1, arr2) {
       parseInt(item.Enquiries) + (merged[date].Enquiries || 0);
   });
 
-  arr2.forEach((item) => {
+  orders.forEach((item) => {
     const date = moment(item.date).format("MMM YY");
     if (!merged[date]) {
       merged[date] = { date };
