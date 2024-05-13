@@ -79,7 +79,7 @@ const getById = async (req, res) => {
         .send({ status: false, message: "order not found!" });
     }
 
-    res.send({ status: true, data: record });
+    res.send({ data: [record] });
   } catch (error) {
     console.error(error);
     res.code(INTERNAL_SERVER_ERROR).send({ status: false, error });
