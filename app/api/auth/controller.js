@@ -28,9 +28,7 @@ const verifyUserCredentials = async (req, res) => {
     );
 
     if (!passwordIsValid) {
-      return res.code(400).send({
-        message: "Invalid credentials",
-      });
+      return res.code(400).send({ message: "Invalid credentials" });
     }
 
     const [jwtToken, expiresIn] = authToken.generateAccessToken(userData);

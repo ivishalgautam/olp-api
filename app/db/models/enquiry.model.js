@@ -1,6 +1,6 @@
 "use strict";
 import constants from "../../lib/constants/index.js";
-import sequelizeFwk, { Op, where } from "sequelize";
+import sequelizeFwk, { Op } from "sequelize";
 
 const { DataTypes, QueryTypes, Deferrable } = sequelizeFwk;
 
