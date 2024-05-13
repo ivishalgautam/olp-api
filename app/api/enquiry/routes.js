@@ -8,9 +8,9 @@ export default async function routes(fastify, options) {
   fastify.get("/", {}, controller.get);
   fastify.get("/:id", {}, controller.getById);
   fastify.delete(
-    "/order-items/:order_item_id",
+    "/enquiry-items/:enquiry_item_id",
     {},
-    controller.deleteOrderItemById
+    controller.deleteEnquiryItemById
   );
   fastify.post("/convertToOrder/:id", {}, controller.convertToOrder);
 }

@@ -160,11 +160,11 @@ const convertToOrder = async (req, res) => {
   }
 };
 
-const deleteOrderItemById = async (req, res) => {
+const deleteEnquiryItemById = async (req, res) => {
   try {
     const record = await table.EnquiryItemModel.getById(
       req,
-      req.params.order_item_id
+      req.params.enquiry_item_id
     );
 
     if (!record)
@@ -172,7 +172,7 @@ const deleteOrderItemById = async (req, res) => {
         .code(NOT_FOUND)
         .send({ status: false, message: "Enquiry item not found!" });
 
-    await table.EnquiryItemModel.deleteById(req, req.params.order_item_id);
+    await table.EnquiryItemModel.deleteById(req, req.params.enquiry_item_id);
     res.send({ status: true, message: "Enquiry item deleted.", data: record });
   } catch (error) {
     console.error(error);
@@ -186,6 +186,6 @@ export default {
   deleteById: deleteById,
   get: get,
   getById: getById,
-  deleteOrderItemById: deleteOrderItemById,
+  deleteEnquiryItemById: deleteEnquiryItemById,
   convertToOrder: convertToOrder,
 };
