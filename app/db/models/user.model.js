@@ -149,7 +149,7 @@ const update = async (req) => {
       last_name: req.body?.last_name,
       email: req.body?.email,
       mobile_number: req.body?.mobile_number,
-      country_code: req.body?.country_code.replace(/\s/g, ""),
+      country_code: req.body?.country_code?.replace(/\s/g, ""),
 
       role: req.body?.role,
     },
