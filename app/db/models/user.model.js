@@ -150,7 +150,6 @@ const update = async (req) => {
       email: req.body?.email,
       mobile_number: req.body?.mobile_number,
       country_code: req.body?.country_code?.replace(/\s/g, ""),
-
       role: req.body?.role,
     },
     {

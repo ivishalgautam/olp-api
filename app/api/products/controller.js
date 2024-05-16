@@ -8,6 +8,7 @@ const { BAD_REQUEST, INTERNAL_SERVER_ERROR, NOT_FOUND } = constants.http.status;
 const create = async (req, res) => {
   try {
     let slug = slugify(req.body.title, { lower: true });
+    console.log({ slug });
     req.body.slug = slug;
     const record = await table.ProductModel.getBySlug(req, slug);
 

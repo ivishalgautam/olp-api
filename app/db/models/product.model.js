@@ -224,8 +224,8 @@ const getById = async (req, id) => {
 const getBySlug = async (req, slug) => {
   let query = `  
       SELECT
-        prd.id, prd.title, prd.slug, prd.description, prd.custom_description, prd.pictures, prd.tags, prd.type, prd.sku, prd.brand_id, prd.category_id, prd.status, 
-        prd.is_featured, prd.meta_title, prd.meta_description, prd.created_at, prd.updated_at, cat.name as category_name,
+        prd.*, 
+        cat.name as category_name,
         CASE
           WHEN COUNT(rp.id) > 0 THEN json_agg(rp.*)
           ELSE '[]'::json
@@ -236,8 +236,7 @@ const getBySlug = async (req, slug) => {
       LEFT JOIN products rp ON rp.id = ANY(prd.related_products)
       WHERE prd.slug = '${req.params.slug || slug}'
       GROUP BY
-        prd.id, prd.title, prd.slug, prd.description, prd.custom_description, prd.pictures, prd.tags, prd.type, prd.sku, prd.brand_id, prd.category_id, prd.status, 
-        prd.is_featured, prd.meta_title, prd.meta_description, prd.created_at, prd.updated_at, cat.name;
+        prd.id;
 `;
   return await ProductModel.sequelize.query(query, {
     type: QueryTypes.SELECT,
