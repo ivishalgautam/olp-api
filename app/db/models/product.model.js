@@ -236,7 +236,8 @@ const getBySlug = async (req, slug) => {
       LEFT JOIN products rp ON rp.id = ANY(prd.related_products)
       WHERE prd.slug = '${req.params.slug || slug}'
       GROUP BY
-        prd.id;
+        prd.id,
+        cat.name;
 `;
   return await ProductModel.sequelize.query(query, {
     type: QueryTypes.SELECT,
