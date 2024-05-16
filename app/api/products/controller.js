@@ -13,7 +13,7 @@ const create = async (req, res) => {
     let counter = 1;
 
     while (await table.ProductModel.getBySlug(null, finalSlug)) {
-      finalSlug = `${finalSlug}-${counter}`;
+      finalSlug = `${slug}-${counter}`;
       counter++;
     }
 
