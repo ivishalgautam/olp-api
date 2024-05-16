@@ -234,7 +234,7 @@ const getBySlug = async (req, slug) => {
         products prd
       LEFT JOIN categories cat ON cat.id = prd.category_id
       LEFT JOIN products rp ON rp.id = ANY(prd.related_products)
-      WHERE prd.slug = '${req.params.slug || slug}'
+      WHERE prd.slug = '${req?.params?.slug || slug}'
       GROUP BY
         prd.id,
         cat.name;

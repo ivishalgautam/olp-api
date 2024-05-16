@@ -8,17 +8,16 @@ const { BAD_REQUEST, INTERNAL_SERVER_ERROR, NOT_FOUND } = constants.http.status;
 const create = async (req, res) => {
   try {
     let slug = slugify(req.body.title, { lower: true });
-    console.log({ slug });
-    req.body.slug = slug;
-    const record = await table.ProductModel.getBySlug(req, slug);
 
-    if (record)
-      return res
-        .code(BAD_REQUEST)
-        .send({ message: "Product exist with this name!" });
+    let finalSlug = slug;
+    let counter = 1;
 
-    console.log(req.body);
+    while (await table.ProductModel.getBySlug(null, finalSlug)) {
+      finalSlug = `${finalSlug}-${counter}`;
+      counter++;
+    }
 
+    req.body.slug = finalSlug;
     const product = await table.ProductModel.create(req);
 
     res.send({ status: true, data: product });
