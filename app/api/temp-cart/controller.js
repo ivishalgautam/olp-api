@@ -29,7 +29,11 @@ const create = async (req, res) => {
     res.send({ status: true, message: "Added to cart." });
   } catch (error) {
     console.error(error);
-    res.code(INTERNAL_SERVER_ERROR).send({ status: false, error });
+    res.code(INTERNAL_SERVER_ERROR).send({
+      status: false,
+      message: error.message ?? "Internal server error!",
+      error,
+    });
   }
 };
 
