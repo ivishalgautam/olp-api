@@ -29,6 +29,7 @@ const init = async (sequelize) => {
       mobile_number: {
         type: sequelizeFwk.DataTypes.STRING,
         allowNull: false,
+        unique: true,
       },
       country_code: {
         type: sequelizeFwk.DataTypes.STRING,

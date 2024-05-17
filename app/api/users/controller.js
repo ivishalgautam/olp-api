@@ -7,19 +7,30 @@ import fs from "fs";
 import path from "path";
 // import { sendCredentials } from "../../helpers/mailer.js";
 import { fileURLToPath } from "url";
-import authToken from "../../helpers/auth.js";
 import crypto from "crypto";
 import { sendOtp } from "../../helpers/interaktApi.js";
 
 const create = async (req, res) => {
   try {
     const record = await table.UserModel.getByUsername(req);
+    const phoneExist = await table.UserModel.getByPhone(
+      req,
+      req.body.mobile_number
+    );
 
     if (record) {
       return res.code(409).send({
         status: false,
         message:
           "User already exists with username. Please try with different username",
+      });
+    }
+
+    if (phoneExist) {
+      return res.code(409).send({
+        status: false,
+        message:
+          "User already exists with mobile number. Please try with different mobile number",
       });
     }
 

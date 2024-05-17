@@ -22,6 +22,16 @@ const verifyUserCredentials = async (req, res) => {
         .send({ message: "User not active. Please contact administrator!" });
     }
 
+    if (!userData.is_verified) {
+      await sendOtp({
+        country_code: userData?.country_code,
+        mobile_number: userData?.mobile_number,
+        first_name: userData?.first_name,
+        last_name: userData?.last_name,
+        otp,
+      });
+    }
+
     let passwordIsValid = await hash.verify(
       req.body.password,
       userData.password
@@ -51,12 +61,23 @@ const createNewUser = async (req, res) => {
   let userData;
   try {
     const record = await table.UserModel.getByUsername(req);
+    const phoneExist = await table.UserModel.getByPhone(
+      req,
+      req.body.mobile_number
+    );
 
     if (record) {
       return res.code(409).send({
         status: false,
         message:
           "User already exists with username. Please try with different username",
+      });
+    }
+    if (phoneExist) {
+      return res.code(409).send({
+        status: false,
+        message:
+          "User already exists with mobile number. Please try with different mobile number",
       });
     }
 
