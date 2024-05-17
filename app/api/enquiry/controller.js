@@ -9,7 +9,7 @@ import {
 const { BAD_REQUEST, INTERNAL_SERVER_ERROR, NOT_FOUND } = constants.http.status;
 
 const create = async (req, res) => {
-  console.log(req.body);
+  return console.log(req.body);
   try {
     const enquiry_id = generateEnquiryId();
 
