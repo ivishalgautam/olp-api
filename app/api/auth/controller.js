@@ -98,21 +98,12 @@ const createNewUser = async (req, res) => {
 
     if (resp.data.result) {
       await table.OtpModel.create({
-        user_id: data.dataValues.id,
+        phone: userData?.mobile_number,
         otp: otp,
       });
     }
 
-    const [jwtToken, expiresIn] = authToken.generateAccessToken(userData);
-    const refreshToken = authToken.generateRefreshToken(userData);
-
-    return res.send({
-      status: true,
-      token: jwtToken,
-      expire_time: Date.now() + expiresIn,
-      refresh_token: refreshToken,
-      user_data: userData,
-    });
+    return res.send({ status: true });
   } catch (error) {
     console.log(error);
     return res.send(error);
