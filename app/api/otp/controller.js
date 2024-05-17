@@ -10,7 +10,7 @@ const create = async (req, res) => {
     const user = await table.UserModel.getByPhone(req, req.body.phone);
 
     const otp = crypto.randomInt(100000, 999999);
-    const record = await table.OtpModel.getByUserId(user?.id);
+    const record = await table.OtpModel.getByPhone(req.body.phone);
 
     const resp = await sendOtp({
       country_code: user.country_code,

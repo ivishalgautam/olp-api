@@ -23,7 +23,7 @@ const create = async (req, res) => {
           const newOrder = await table.EnquiryItemModel.create({
             enquiry_id: enquiry.id,
             product_id: product_id,
-            quantity: quantity,
+            quantity: parseInt(quantity),
           });
 
           if (newOrder) {
