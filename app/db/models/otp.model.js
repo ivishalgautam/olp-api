@@ -15,15 +15,9 @@ const init = async (sequelize) => {
         defaultValue: DataTypes.UUIDV4,
         unique: true,
       },
-      user_id: {
-        type: DataTypes.UUID,
+      phone: {
+        type: DataTypes.STRING,
         allowNull: false,
-        onDelete: "CASCADE",
-        references: {
-          model: constants.models.USER_TABLE,
-          key: "id",
-          deferrable: Deferrable.INITIALLY_IMMEDIATE,
-        },
       },
       otp: {
         type: DataTypes.STRING,
@@ -39,21 +33,21 @@ const init = async (sequelize) => {
   await OtpModel.sync({ alter: true });
 };
 
-const create = async ({ user_id, otp }) => {
+const create = async ({ phone, otp }) => {
   return await OtpModel.create({
-    user_id: user_id,
+    phone: phone,
     otp: otp,
   });
 };
 
-const update = async ({ user_id, otp }) => {
+const update = async ({ phone, otp }) => {
   return await OtpModel.update(
     {
       otp: otp,
     },
     {
       where: {
-        user_id: user_id,
+        phone: phone,
       },
       returning: true,
       raw: true,
@@ -61,10 +55,10 @@ const update = async ({ user_id, otp }) => {
   );
 };
 
-const getByUserId = async (user_id) => {
+const getByPhone = async (phone) => {
   return await OtpModel.findOne({
     where: {
-      user_id: user_id,
+      phone: phone,
     },
     order: [["created_at", "DESC"]],
     limit: 1,
@@ -73,9 +67,9 @@ const getByUserId = async (user_id) => {
   });
 };
 
-const deleteByUserId = async (user_id) => {
+const deleteByPhone = async (phone) => {
   return await OtpModel.destroy({
-    where: { user_id: user_id },
+    where: { phone: phone },
   });
 };
 
@@ -83,6 +77,6 @@ export default {
   init: init,
   create: create,
   update: update,
-  getByUserId: getByUserId,
-  deleteByUserId: deleteByUserId,
+  getByPhone: getByPhone,
+  deleteByPhone: deleteByPhone,
 };

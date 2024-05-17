@@ -120,6 +120,28 @@ const getById = async (req, user_id) => {
   });
 };
 
+const getByPhone = async (req, phone) => {
+  return await UserModel.findOne({
+    where: {
+      mobile_number: req.body.phone || phone,
+    },
+    raw: true,
+    attributes: [
+      "id",
+      "username",
+      "email",
+      "first_name",
+      "last_name",
+      "password",
+      "is_active",
+      "role",
+      "mobile_number",
+      "country_code",
+      "is_verified",
+    ],
+  });
+};
+
 const getByUsername = async (req, record = undefined) => {
   return await UserModel.findOne({
     where: {
@@ -277,15 +299,16 @@ const updateStatus = async (id, status) => {
   return rows;
 };
 
-const verify = async ({ user_id, status }) => {
+const verify = async (phone) => {
   const [rowCount, rows] = await UserModel.update(
     {
-      is_verified: status,
+      is_verified: true,
     },
     {
       where: {
-        id: user_id,
+        mobile_number: phone,
       },
+      returning: true,
       plain: true,
       raw: true,
     }
@@ -322,6 +345,7 @@ export default {
   create: create,
   get: get,
   getById: getById,
+  getByPhone: getByPhone,
   getByUsername: getByUsername,
   update: update,
   updatePassword: updatePassword,

@@ -7,10 +7,8 @@ import { sendOtp } from "../../helpers/interaktApi.js";
 
 const create = async (req, res) => {
   try {
-    const user = await table.UserModel.getById(
-      req,
-      req.user_data?.id || req.decoded.user.id
-    );
+    const user = await table.UserModel.getByPhone(req, req.body.phone);
+
     const otp = crypto.randomInt(100000, 999999);
     const record = await table.OtpModel.getByUserId(user?.id);
 
@@ -25,12 +23,12 @@ const create = async (req, res) => {
     if (resp.data.result) {
       if (record) {
         await table.OtpModel.update({
-          user_id: req.user_data?.id || req.decoded.user.id,
+          phone: req.body.phone,
           otp: otp,
         });
       } else {
         await table.OtpModel.create({
-          user_id: req.user_data?.id || req.decoded.user.id,
+          phone: req.body.phone,
           otp: otp,
         });
       }
@@ -39,53 +37,42 @@ const create = async (req, res) => {
     res.send({ status: true, message: "Otp sent" });
   } catch (error) {
     console.error(error);
-    res
-      .code(constants.http.status.INTERNAL_SERVER_ERROR)
-      .send({ status: false, error });
+    res.code(500).send({ status: false, error });
   }
 };
 
 const verify = async (req, res) => {
   try {
-    const record = await table.OtpModel.getByUserId(
-      req.user_data?.id || req.decoded.user.id
-    );
+    const record = await table.OtpModel.getByPhone(req.body.phone);
 
     if (!record) {
-      return res
-        .code(constants.http.status.NOT_FOUND)
-        .send({ message: "OTP not found!" });
+      return res.code(404).send({ message: "OTP not found!" });
     }
 
     const isExpired = moment(record.created_at).add(5, "minutes").isBefore();
     if (isExpired) {
-      await table.OtpModel.deleteByUserId(
-        req.user_data?.id || req.decoded.user.id
-      );
+      await table.OtpModel.deleteByPhone(req.body.phone);
       return res
         .code(400)
         .send({ status: false, message: "Please resend OTP!" });
     }
 
-    if (record.otp != req.params.otp) {
+    if (record.otp != req.body.otp) {
       return res.code(400).send({ status: false, message: "Incorrect otp!" });
     }
 
-    await table.OtpModel.deleteByUserId(
-      req.user_data?.id || req.decoded.user.id
-    );
+    await table.OtpModel.deleteByPhone(req.body.phone);
 
-    await table.UserModel.verify({
-      user_id: req.user_data?.id || req.decoded.user.id,
+    const user = await table.UserModel.verify(req.body.phone);
+
+    res.send({
       status: true,
+      message: "Otp verified.",
+      is_active: user.is_active,
     });
-
-    res.send({ status: true, message: "Otp verified." });
   } catch (error) {
     console.error(error);
-    res
-      .code(constants.http.status.INTERNAL_SERVER_ERROR)
-      .send({ status: false, error });
+    res.code(500).send({ status: false, error });
   }
 };
 

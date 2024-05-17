@@ -1,6 +1,7 @@
 "use strict";
 import controller from "./controller.js";
 import userController from "../users/controller.js";
+import otpController from "../otp/controller.js";
 
 const schema = {
   body: {
@@ -19,4 +20,6 @@ export default async function routes(fastify, options) {
   fastify.post("/refresh", {}, controller.verifyRefreshToken);
   fastify.post("/username", {}, userController.checkUsername);
   fastify.post("/:token", {}, userController.resetPassword);
+  fastify.post("/otp/send", {}, otpController.create);
+  fastify.post("/otp/verify", {}, otpController.verify);
 }
