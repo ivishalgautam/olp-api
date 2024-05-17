@@ -22,7 +22,9 @@ const verifyUserCredentials = async (req, res) => {
         .send({ message: "User not active. Please contact administrator!" });
     }
 
-    if (!userData.is_verified) {
+    if (userData.role !== "admin" && !userData.is_verified) {
+      const otp = crypto.randomInt(100000, 999999);
+
       await sendOtp({
         country_code: userData?.country_code,
         mobile_number: userData?.mobile_number,
