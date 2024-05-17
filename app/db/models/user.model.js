@@ -37,6 +37,7 @@ const init = async (sequelize) => {
       },
       first_name: {
         type: sequelizeFwk.DataTypes.STRING,
+        allowNull: true,
       },
       last_name: {
         type: sequelizeFwk.DataTypes.STRING,
@@ -80,12 +81,12 @@ const create = async (req) => {
   return await UserModel.create({
     username: req.body.username,
     password: hash_password,
-    first_name: req.body?.first_name,
-    last_name: req.body?.last_name,
-    email: req.body?.email,
-    mobile_number: req.body?.mobile_number,
+    first_name: req.body.first_name,
+    last_name: req.body.last_name,
+    email: req.body.email,
+    mobile_number: req.body.mobile_number,
     country_code: req.body?.country_code.replace(/\s/g, ""),
-    role: req.body?.role,
+    role: req.body.role,
   });
 };
 

@@ -60,7 +60,6 @@ const verifyUserCredentials = async (req, res) => {
 };
 
 const createNewUser = async (req, res) => {
-  let userData;
   try {
     const record = await table.UserModel.getByUsername(req);
     const phoneExist = await table.UserModel.getByPhone(
