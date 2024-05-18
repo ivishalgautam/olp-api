@@ -37,6 +37,7 @@ const init = async (sequelize) => {
         onDelete: "CASCADE",
         references: {
           model: constants.models.BRAND_TABLE,
+          key: "id",
           deferrable: Deferrable.INITIALLY_IMMEDIATE,
         },
       },
@@ -49,6 +50,10 @@ const init = async (sequelize) => {
           key: "id",
           deferrable: Deferrable.INITIALLY_IMMEDIATE,
         },
+      },
+      category_ids: {
+        type: DataTypes.ARRAY(DataTypes.UUID),
+        deafaultValue: [],
       },
       status: {
         type: DataTypes.ENUM("published", "draft", "pending"),
@@ -178,8 +183,6 @@ const get = async (req) => {
 };
 
 const updateById = async (req, id) => {
-  console.log(req.body);
-  // bdhdvd
   const [rowCount, rows] = await ProductModel.update(
     {
       title: req.body?.title,
@@ -192,6 +195,7 @@ const updateById = async (req, id) => {
       sku: req.body?.sku,
       brand_id: req.body?.brand_id,
       category_id: req.body?.category_id,
+      category_ids: req.body?.category_ids,
       status: req.body?.status,
       is_featured: req.body?.is_featured,
       related_products: req.body?.related_products,
@@ -226,20 +230,23 @@ const getBySlug = async (req, slug) => {
   let query = `  
       SELECT
         prd.*, 
-        cat.name as category_name,
+        CASE
+          WHEN COUNT(cat.id) > 0 THEN json_agg(cat.*)
+          ELSE '[]'::json
+        END AS categories,
         CASE
           WHEN COUNT(rp.id) > 0 THEN json_agg(rp.*)
           ELSE '[]'::json
         END AS related_products
       FROM
         products prd
-      LEFT JOIN categories cat ON cat.id = prd.category_id
-      LEFT JOIN products rp ON rp.id = ANY(prd.related_products)
+        LEFT JOIN products rp ON rp.id = ANY(prd.related_products)
+        LEFT JOIN categories cat ON cat.id = ANY(prd.category_ids)
       WHERE prd.slug = '${req?.params?.slug || slug}'
       GROUP BY
-        prd.id,
-        cat.name;
-`;
+        prd.id
+  `;
+
   return await ProductModel.sequelize.query(query, {
     type: QueryTypes.SELECT,
     plain: true,

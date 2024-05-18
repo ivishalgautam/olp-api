@@ -189,6 +189,28 @@ const test = async (req, res) => {
   }
 };
 
+const updateCategories = async (req, res) => {
+  try {
+    const data = await table.ProductModel.test();
+
+    data.forEach(async (item) => {
+      req = { body: { category_ids: [item.category_id] } };
+      await table.ProductModel.updateById(req, item.id);
+    });
+
+    const updatedData = data?.map(({ id, category_id, category_ids }) => ({
+      id,
+      category_id,
+      category_ids,
+    }));
+
+    res.send(updatedData);
+  } catch (error) {
+    console.error(error);
+    res.code(INTERNAL_SERVER_ERROR).send({ status: false, error });
+  }
+};
+
 const deleteById = async (req, res) => {
   try {
     const record = await table.ProductModel.getById(req, req.params.id);
@@ -243,7 +265,6 @@ const searchProducts = async (req, res) => {
 export default {
   create: create,
   get: get,
-  test: test,
   updateById: updateById,
   deleteById: deleteById,
   getBySlug: getBySlug,
@@ -252,4 +273,6 @@ export default {
   getByBrand: getByBrand,
   publishProductById: publishProductById,
   searchProducts: searchProducts,
+  test: test,
+  updateCategories: updateCategories,
 };
