@@ -151,7 +151,6 @@ const get = async (req) => {
     ORDER BY prd.updated_at DESC
     LIMIT :limit OFFSET :offset;
   `;
-  console.log(query);
 
   const products = await ProductModel.sequelize.query(query, {
     replacements: { ...queryParams, limit, offset },

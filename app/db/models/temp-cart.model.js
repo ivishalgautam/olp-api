@@ -62,12 +62,10 @@ const get = async (req) => {
       prd.description,
       prd.pictures,
       prd.id as product_id,
-      brnd.name as brand_name,
-      cat.name as category_name
+      brnd.name as brand_name
     FROM temp_carts tc
     LEFT JOIN products prd on prd.id = tc.product_id
     LEFT JOIN brands brnd on brnd.id = prd.brand_id
-    LEFT JOIN categories cat on cat.id = prd.category_id
     WHERE tc.user_id = '${req.user_data.id}';
   `;
 
