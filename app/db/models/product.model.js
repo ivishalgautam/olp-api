@@ -82,6 +82,7 @@ const create = async (req) => {
     meta_description: req.body.meta_description,
   });
 };
+
 const get = async (req) => {
   let whereConditions = [];
   const queryParams = {};
@@ -132,18 +133,25 @@ const get = async (req) => {
   const query = `
     SELECT
       prd.*,
-      cat.name AS category_name,
-      cat.slug AS category_slug,
+      CASE
+          WHEN COUNT(cat.id) > 0 THEN json_agg(cat.*)
+          ELSE '[]'::json
+        END AS categories,
       brd.name AS brand_name,
       brd.slug AS brand_slug
     FROM
       products prd
-      LEFT JOIN categories cat ON cat.id = prd.category_id
+      LEFT JOIN categories cat ON cat.id = ANY(prd.category_ids)
       LEFT JOIN brands brd ON brd.id = prd.brand_id
     ${whereClause}
+    GROUP BY
+      prd.id,
+      brd.name,
+      brd.slug
     ORDER BY prd.updated_at DESC
     LIMIT :limit OFFSET :offset;
   `;
+  console.log(query);
 
   const products = await ProductModel.sequelize.query(query, {
     replacements: { ...queryParams, limit, offset },
@@ -152,11 +160,11 @@ const get = async (req) => {
   });
 
   const countQuery = `
-    SELECT COUNT(prd.id) AS total
-    FROM products prd
-    LEFT JOIN categories cat ON cat.id = prd.category_id
-    LEFT JOIN brands brd ON brd.id = prd.brand_id
-    ${whereClause};
+  SELECT COUNT(prd.id) AS total
+  FROM products prd
+  LEFT JOIN categories cat ON cat.id = ANY(prd.category_ids)
+  LEFT JOIN brands brd ON brd.id = prd.brand_id
+  ${whereClause};
   `;
 
   const [{ total }] = await ProductModel.sequelize.query(countQuery, {
@@ -184,7 +192,6 @@ const updateById = async (req, id) => {
       type: req.body?.type,
       sku: req.body?.sku,
       brand_id: req.body?.brand_id,
-      category_id: req.body?.category_id,
       category_ids: req.body?.category_ids,
       status: req.body?.status,
       is_featured: req.body?.is_featured,
@@ -265,15 +272,21 @@ const getByCategory = async (req, slug) => {
   let query = `
     SELECT
       prd.*,
-      cat.name AS category_name,
-      cat.slug AS category_slug,
+      CASE
+          WHEN COUNT(cat.id) > 0 THEN json_agg(cat.*)
+          ELSE '[]'::json
+        END AS categories,
       brd.name AS brand_name,
       brd.slug AS brand_slug
     FROM
       products prd
-      LEFT JOIN categories cat ON cat.id = prd.category_id
+      LEFT JOIN categories cat ON cat.id = ANY(prd.category_ids)
       LEFT JOIN brands brd ON brd.id = prd.brand_id
       WHERE cat.slug = '${slug}'
+    GROUP BY
+      prd.id,
+      brd.name,
+      brd.slug
       ${threshold}
   `;
 
@@ -318,15 +331,21 @@ const getByBrand = async (req, slug) => {
   let query = `
     SELECT
       prd.*,
-      cat.name AS category_name,
-      cat.slug AS category_slug,
+      CASE
+          WHEN COUNT(cat.id) > 0 THEN json_agg(cat.*)
+          ELSE '[]'::json
+        END AS categories,
       brd.name AS brand_name,
       brd.slug AS brand_slug
     FROM
       products prd
-      LEFT JOIN categories cat ON cat.id = prd.category_id
+      LEFT JOIN categories cat ON cat.id = ANY(prd.category_ids)
       LEFT JOIN brands brd ON brd.id = prd.brand_id
       WHERE brd.slug = '${slug}'
+      GROUP BY
+        prd.id,
+        brd.name,
+        brd.slug
       ${threshold}
   `;
 
