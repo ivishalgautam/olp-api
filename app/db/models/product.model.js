@@ -43,7 +43,7 @@ const init = async (sequelize) => {
       },
       category_id: {
         type: DataTypes.UUID,
-        allowNull: false,
+        allowNull: true,
         onDelete: "CASCADE",
         references: {
           model: constants.models.CATEGORY_TABLE,
