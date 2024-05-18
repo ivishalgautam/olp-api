@@ -152,6 +152,43 @@ const get = async (req, res) => {
   }
 };
 
+const test = async (req, res) => {
+  try {
+    const data = await table.ProductModel.test();
+
+    const filteredData = data
+      .filter((item) => item.tags.length === 1)
+      .map((item) => ({ id: item.id, tags: item.tags }));
+
+    filteredData.forEach(async (element) => {
+      const splitWith = [" ", "-", "_", "/"];
+      const tag = element.tags[0];
+      const newTags = [
+        tag,
+        ...splitWith.reduce((acc, i) => {
+          if (tag.includes(i)) {
+            const replacements = splitWith
+              .filter((j) => j !== i)
+              .map((k) => tag.split(i).join(k));
+            return acc.concat(replacements);
+          }
+          return acc;
+        }, []),
+      ];
+      req = { body: { tags: newTags } };
+      await table.ProductModel.updateById(req, element.id);
+    });
+
+    res.send({
+      data: filteredData,
+      length: filteredData.length,
+    });
+  } catch (error) {
+    console.error(error);
+    res.code(INTERNAL_SERVER_ERROR).send({ status: false, error });
+  }
+};
+
 const deleteById = async (req, res) => {
   try {
     const record = await table.ProductModel.getById(req, req.params.id);
@@ -206,6 +243,7 @@ const searchProducts = async (req, res) => {
 export default {
   create: create,
   get: get,
+  test: test,
   updateById: updateById,
   deleteById: deleteById,
   getBySlug: getBySlug,

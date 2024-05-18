@@ -178,6 +178,7 @@ const get = async (req) => {
 };
 
 const updateById = async (req, id) => {
+  console.log(req.body);
   // bdhdvd
   const [rowCount, rows] = await ProductModel.update(
     {
@@ -198,7 +199,7 @@ const updateById = async (req, id) => {
       meta_description: req.body?.meta_description,
     },
     {
-      where: { id: req.params.id || id },
+      where: { id: req?.params?.id || id },
       returning: true,
       raw: true,
     }
@@ -433,6 +434,10 @@ const searchProducts = async (req) => {
   });
 };
 
+const test = async () => {
+  return await ProductModel.findAll();
+};
+
 export default {
   init: init,
   create: create,
@@ -446,4 +451,5 @@ export default {
   getByBrand: getByBrand,
   searchProducts: searchProducts,
   countProducts: countProducts,
+  test: test,
 };

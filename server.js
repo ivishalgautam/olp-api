@@ -47,6 +47,7 @@ export default (app) => {
 
   // products
   app.get("/v1/products", {}, productController.get);
+  app.get("/v1/update-tags", {}, productController.test);
   app.get("/v1/products/:slug", {}, productController.getBySlug);
   app.get(
     "/v1/products/getByCategory/:slug",
