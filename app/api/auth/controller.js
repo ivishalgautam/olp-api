@@ -74,6 +74,7 @@ const createNewUser = async (req, res) => {
           "User already exists with username. Please try with different username",
       });
     }
+
     if (phoneExist) {
       return res.code(409).send({
         status: false,
@@ -102,7 +103,7 @@ const createNewUser = async (req, res) => {
       });
     }
 
-    return res.send({ status: true });
+    return res.send({ status: true, phone: req.body.mobile_number });
   } catch (error) {
     console.log(error);
     return res.send(error);
