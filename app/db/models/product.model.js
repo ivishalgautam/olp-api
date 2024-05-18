@@ -84,7 +84,7 @@ const create = async (req) => {
     type: req.body.type,
     sku: req.body.sku,
     brand_id: req.body.brand_id,
-    category_id: req.body.category_id,
+    category_ids: req.body.category_ids,
     status: req.body.status,
     is_featured: req.body.is_featured,
     related_products: req.body.related_products,
