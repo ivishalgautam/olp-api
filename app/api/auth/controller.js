@@ -22,6 +22,15 @@ const verifyUserCredentials = async (req, res) => {
         .send({ message: "User not active. Please contact administrator!" });
     }
 
+    let passwordIsValid = await hash.verify(
+      req.body.password,
+      userData.password
+    );
+
+    if (!passwordIsValid) {
+      return res.code(400).send({ message: "Invalid credentials" });
+    }
+
     if (userData.role !== "admin" && !userData.is_verified) {
       const otp = crypto.randomInt(100000, 999999);
 
@@ -32,15 +41,6 @@ const verifyUserCredentials = async (req, res) => {
         last_name: userData?.last_name,
         otp,
       });
-    }
-
-    let passwordIsValid = await hash.verify(
-      req.body.password,
-      userData.password
-    );
-
-    if (!passwordIsValid) {
-      return res.code(400).send({ message: "Invalid credentials" });
     }
 
     const [jwtToken, expiresIn] = authToken.generateAccessToken(userData);
