@@ -41,16 +41,6 @@ const init = async (sequelize) => {
           deferrable: Deferrable.INITIALLY_IMMEDIATE,
         },
       },
-      category_id: {
-        type: DataTypes.UUID,
-        allowNull: true,
-        onDelete: "CASCADE",
-        references: {
-          model: constants.models.CATEGORY_TABLE,
-          key: "id",
-          deferrable: Deferrable.INITIALLY_IMMEDIATE,
-        },
-      },
       category_ids: {
         type: DataTypes.ARRAY(DataTypes.UUID),
         deafaultValue: [],
