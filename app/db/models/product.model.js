@@ -159,11 +159,12 @@ const get = async (req) => {
   });
 
   const countQuery = `
-  SELECT COUNT(prd.id) AS total
-  FROM products prd
-  LEFT JOIN categories cat ON cat.id = ANY(prd.category_ids)
-  LEFT JOIN brands brd ON brd.id = prd.brand_id
-  ${whereClause};
+      SELECT
+        COUNT(prd.id) AS total
+        FROM products prd
+      LEFT JOIN categories cat ON cat.id = ANY(prd.category_ids)
+      LEFT JOIN brands brd ON brd.id = prd.brand_id
+      ${whereClause};
   `;
 
   const [{ total }] = await ProductModel.sequelize.query(countQuery, {
@@ -251,17 +252,8 @@ const getBySlug = async (req, slug) => {
 
 const getByCategory = async (req, slug) => {
   let threshold = "";
-  const page = !req?.query?.page
-    ? null
-    : req?.query?.page < 1
-    ? 1
-    : req?.query?.page;
-
-  const limit = !req?.query?.limit
-    ? null
-    : req?.query?.limit
-    ? req?.query?.limit
-    : 10;
+  const page = req.query.page ? Math.max(1, parseInt(req.query.page)) : 1;
+  const limit = req.query.limit ? parseInt(req.query.limit) : 10;
 
   if (page && limit) {
     const offset = (page - 1) * limit;
@@ -295,12 +287,17 @@ const getByCategory = async (req, slug) => {
   });
 
   const { total } = await ProductModel.sequelize.query(
-    `SELECT COUNT(id) AS total FROM products;`,
+    `SELECT 
+        COUNT(prd.id) AS total 
+        FROM products prd
+        LEFT JOIN categories cat ON cat.id = ANY(prd.category_ids)
+        WHERE cat.slug = '${slug}';`,
     {
       type: QueryTypes.SELECT,
       plain: true,
     }
   );
+
   return {
     products,
     total_page: Math.ceil(Number(total) / Number(limit)),
@@ -310,17 +307,8 @@ const getByCategory = async (req, slug) => {
 
 const getByBrand = async (req, slug) => {
   let threshold = "";
-  const page = !req?.query?.page
-    ? null
-    : req?.query?.page < 1
-    ? 1
-    : req?.query?.page;
-
-  const limit = !req?.query?.limit
-    ? null
-    : req?.query?.limit
-    ? req?.query?.limit
-    : 10;
+  const page = req.query.page ? Math.max(1, parseInt(req.query.page)) : 1;
+  const limit = req.query.limit ? parseInt(req.query.limit) : 10;
 
   if (page && limit) {
     const offset = (page - 1) * limit;
@@ -354,7 +342,11 @@ const getByBrand = async (req, slug) => {
   });
 
   const { total } = await ProductModel.sequelize.query(
-    `SELECT COUNT(id) AS total FROM products;`,
+    `SELECT 
+        COUNT(prd.id) AS total 
+      FROM products prd
+      LEFT JOIN brands brd ON brd.id = prd.brand_id
+        WHERE brd.slug = '${slug}';`,
     {
       type: QueryTypes.SELECT,
       plain: true,
