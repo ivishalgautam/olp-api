@@ -62,6 +62,20 @@ const updateById = async (req, res) => {
 const getBySlug = async (req, res) => {
   try {
     const record = await table.ProductModel.getBySlug(req, req.params.slug);
+    const updatedData = {
+      ...record,
+      categories: record?.categories.filter(
+        (ele, ind, self) => ind === self.findIndex((t) => t.id === ele.id)
+      ),
+    };
+
+    // console.log(record?.categories);
+
+    // console.log(
+    //   record?.categories.filter(
+    //     (ele, ind, self) => ind === self.findIndex((t) => t.id === ele.id)
+    //   )
+    // );
 
     if (!record) {
       return res
@@ -69,7 +83,7 @@ const getBySlug = async (req, res) => {
         .send({ status: false, message: "Product not found!" });
     }
 
-    res.send({ status: true, data: record });
+    res.send({ status: true, data: updatedData });
   } catch (error) {
     console.error(error);
     res.code(INTERNAL_SERVER_ERROR).send({ status: false, error });

@@ -59,8 +59,8 @@ const constants = {
   },
   time: {
     // TOKEN_EXPIRES_IN: 15 * 6000000, // 15 * 1 minute = 15 minutes
-    TOKEN_EXPIRES_IN: "7d",
-    REFRESH_TOKEN_EXPIRES_IN: "15d", // 1 day
+    TOKEN_EXPIRES_IN: "15d",
+    REFRESH_TOKEN_EXPIRES_IN: "30d",
   },
 };
 

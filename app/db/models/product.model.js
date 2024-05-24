@@ -148,7 +148,7 @@ const get = async (req) => {
       prd.id,
       brd.name,
       brd.slug
-    ORDER BY prd.updated_at DESC
+    ORDER BY prd.created_at DESC
     LIMIT :limit OFFSET :offset;
   `;
 
