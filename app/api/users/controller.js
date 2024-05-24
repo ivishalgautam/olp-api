@@ -4,11 +4,12 @@ import table from "../../db/models.js";
 import hash from "../../lib/encryption/index.js";
 import ejs from "ejs";
 import fs from "fs";
-import path from "path";
+import path, { resolve } from "path";
 // import { sendCredentials } from "../../helpers/mailer.js";
 import { fileURLToPath } from "url";
 import crypto from "crypto";
 import { sendOtp } from "../../helpers/interaktApi.js";
+import csv from "csv-parser";
 
 const create = async (req, res) => {
   try {
@@ -242,6 +243,63 @@ const resetPassword = async (req, res) => {
     return res.code(500).send({ status: false, error });
   }
 };
+
+async function importCustomers(req, res) {
+  const processRow = async (data) => {
+    req.body = {
+      username: String(data.username).toLowerCase(),
+      email: data.email,
+      mobile_number: data.phone,
+      country_code: data.country_code,
+      first_name: data.name,
+      password: data.password_string,
+    };
+
+    const record = await table.UserModel.getByPhone({
+      body: { phone: req.body.mobile_number },
+    });
+    const username = await table.UserModel.getByUsername({
+      body: { username: req.body.username },
+    });
+
+    if (!record && !username) {
+      await table.UserModel.create(req);
+    }
+  };
+
+  try {
+    if (!req.file) {
+      return res.code(400).send({ message: "No file uploaded." });
+    }
+
+    const results = [];
+
+    await new Promise((resolve, reject) => {
+      fs.createReadStream(req.file.path)
+        .pipe(csv())
+        .on("data", async (data) => {
+          results.push(data);
+        })
+        .on("end", () => {
+          resolve();
+          fs.unlinkSync(req.file.path);
+        })
+        .on("error", (error) => {
+          reject();
+        });
+    });
+
+    for (const row of results) {
+      await processRow(row);
+    }
+
+    res.send({ message: "Customers imported successfully" });
+  } catch (error) {
+    console.log(error);
+    res.code(500).send({ message: error.message });
+  }
+}
+
 export default {
   create: create,
   update: update,
@@ -253,4 +311,5 @@ export default {
   getUser: getUser,
   resetPassword: resetPassword,
   updateStatus: updateStatus,
+  importCustomers: importCustomers,
 };

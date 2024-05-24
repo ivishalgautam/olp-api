@@ -6,6 +6,7 @@ import { dirname } from "path";
 import path from "path";
 import fastifyView from "@fastify/view";
 import ejs from "ejs";
+import multer from "fastify-multer";
 
 // import internal modules
 import authRoutes from "./app/api/auth/routes.js";
@@ -42,13 +43,14 @@ export default (app) => {
     },
   });
 
+  // app.register(multer.contentParser);
+
   app.register(uploadFileRoutes, { prefix: "v1/upload" });
   app.post("/v1/users", {}, userController.create);
 
   // products
   app.get("/v1/products", {}, productController.get);
   app.get("/v1/update-tags", {}, productController.test);
-  // app.get("/v1/update-categories", {}, productController.updateCategories);
   app.get("/v1/products/:slug", {}, productController.getBySlug);
   app.get(
     "/v1/products/getByCategory/:slug",
