@@ -17,7 +17,7 @@ import categoriesController from "./app/api/categories/controller.js";
 import brandsController from "./app/api/brand/controller.js";
 import queryController from "./app/api/query/controller.js";
 import userController from "./app/api/users/controller.js";
-import { querySchema } from "./app/api/query/routes.js";
+import querySchema from "./app/api/query/schema.js";
 /*
   Register External packages, routes, database connection
 */
@@ -65,5 +65,9 @@ export default (app) => {
   app.get("/v1/brands", {}, brandsController.get);
 
   // query
-  app.post("/v1/queries", querySchema, queryController.create);
+  app.post(
+    "/v1/queries",
+    { schema: querySchema.create },
+    queryController.create
+  );
 };
