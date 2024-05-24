@@ -252,6 +252,7 @@ async function importCustomers(req, res) {
       mobile_number: data.phone,
       country_code: data.country_code,
       first_name: data.name,
+      last_name: "",
       password: data.password_string,
     };
 
