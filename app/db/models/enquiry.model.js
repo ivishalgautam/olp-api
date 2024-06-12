@@ -31,9 +31,14 @@ const init = async (sequelize) => {
           "available",
           "not_available",
           "partially_available",
-          "pending"
+          "pending",
+          "closed"
         ),
         defaultValue: "pending",
+      },
+      is_converted_to_order: {
+        type: DataTypes.BOOLEAN,
+        defaultValue: false,
       },
     },
     {
@@ -88,6 +93,7 @@ const update = async (req, id) => {
   const [rowCount, rows] = await EnquiryModel.update(
     {
       status: req.body.status,
+      is_converted_to_order: req.body?.is_converted_to_order,
     },
     {
       where: {

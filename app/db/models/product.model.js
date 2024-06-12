@@ -21,6 +21,9 @@ const init = async (sequelize) => {
         allowNull: false,
         unique: true,
       },
+      // price: {
+      //   type: DataTypes.FLOAT,
+      // },
       description: { type: DataTypes.TEXT, allowNull: true },
       custom_description: { type: DataTypes.JSONB, defaultValue: "[]" },
       pictures: { type: DataTypes.ARRAY(DataTypes.TEXT), default: [] },
