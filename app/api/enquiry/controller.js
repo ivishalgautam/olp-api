@@ -125,6 +125,9 @@ const convertToOrder = async (req, res) => {
         .code(NOT_FOUND)
         .send({ status: false, message: "Enquiry not found!" });
 
+    if (record?.is_converted_to_order)
+      return res.code(400).send({ message: "Already converted to order!" });
+
     const shouldConvertToOrder = record.items
       .map((item) => item.status)
       .some((ele) => ele === "partially_available" || ele === "available");
@@ -140,6 +143,15 @@ const convertToOrder = async (req, res) => {
       order_id: orderId,
       user_id: record.user_id,
     });
+
+    if (order) {
+      // update enquiry after coverted to order
+      req.body.is_converted_to_order = true;
+      req.body.status = "closed";
+      await table.EnquiryModel.update(req, req.params.id);
+      delete req.body.is_converted_to_order;
+      delete req.body.status;
+    }
 
     record.items.forEach(
       async ({ id, product_id, quantity, status, available_quantity }) => {

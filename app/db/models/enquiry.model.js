@@ -114,6 +114,7 @@ const getById = async (id) => {
         enq.id,
         enq.user_id,
         enq.status,
+        enq.is_converted_to_order,
         json_agg(json_build_object(
           'id', ei.id,
           'enquiry_id', ei.enquiry_id,
