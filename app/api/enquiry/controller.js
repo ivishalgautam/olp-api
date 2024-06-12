@@ -51,6 +51,13 @@ const updateById = async (req, res) => {
         .send({ status: false, message: "Enquiry not found!" });
     }
 
+    if (record.is_converted_to_order) {
+      return res.code(400).send({
+        status: false,
+        message: "Enquiry converted to order no changes allowed!",
+      });
+    }
+
     const data = await table.EnquiryModel.update(req, req.params.id);
 
     if (data) {
