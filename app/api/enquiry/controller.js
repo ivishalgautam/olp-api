@@ -145,6 +145,7 @@ const convertToOrder = async (req, res) => {
     });
 
     if (order) {
+      req.body = {};
       // update enquiry after coverted to order
       req.body.is_converted_to_order = true;
       req.body.status = "closed";
