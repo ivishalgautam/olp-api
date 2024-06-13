@@ -175,6 +175,7 @@ const update = async (req) => {
       mobile_number: req.body?.mobile_number,
       country_code: req.body?.country_code?.replace(/\s/g, ""),
       role: req.body?.role,
+      is_active: req.body?.is_active,
     },
     {
       where: {
