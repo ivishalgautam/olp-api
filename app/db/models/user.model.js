@@ -46,6 +46,10 @@ const init = async (sequelize) => {
         type: sequelizeFwk.DataTypes.STRING,
         allowNull: false,
       },
+      password_string: {
+        type: sequelizeFwk.DataTypes.STRING,
+        allowNull: true,
+      },
       is_active: {
         type: sequelizeFwk.DataTypes.BOOLEAN,
         defaultValue: false,
@@ -87,6 +91,7 @@ const create = async (req) => {
     mobile_number: req.body.mobile_number,
     country_code: req.body?.country_code.replace(/\s/g, ""),
     role: req.body.role,
+    password_string: req.body.password,
   });
 };
 
@@ -95,7 +100,12 @@ const get = async () => {
     where: { role: "user" },
     order: [["created_at", "DESC"]],
     attributes: {
-      exclude: ["password", "reset_password_token", "confirmation_token"],
+      exclude: [
+        "password",
+        "password_string",
+        "reset_password_token",
+        "confirmation_token",
+      ],
     },
   });
 };
@@ -113,6 +123,7 @@ const getById = async (req, user_id) => {
       "first_name",
       "last_name",
       "password",
+      "password_string",
       "is_active",
       "role",
       "mobile_number",
@@ -135,6 +146,7 @@ const getByPhone = async (req, phone) => {
       "first_name",
       "last_name",
       "password",
+      "password_string",
       "is_active",
       "role",
       "mobile_number",
@@ -156,6 +168,7 @@ const getByUsername = async (req, record = undefined) => {
       "first_name",
       "last_name",
       "password",
+      "password_string",
       "is_active",
       "role",
       "mobile_number",
@@ -166,7 +179,7 @@ const getByUsername = async (req, record = undefined) => {
 };
 
 const update = async (req) => {
-  return await UserModel.update(
+  const [rowCount, rows] = await UserModel.update(
     {
       username: req.body?.username,
       first_name: req.body?.first_name,
@@ -192,10 +205,14 @@ const update = async (req) => {
         "mobile_number",
         "country_code",
         "is_verified",
+        "password_string",
       ],
+      raw: true,
       plain: true,
     }
   );
+
+  return rows;
 };
 
 const updatePassword = async (req, user_id) => {
@@ -203,6 +220,7 @@ const updatePassword = async (req, user_id) => {
   return await UserModel.update(
     {
       password: hash_password,
+      password_string: req.body.new_password,
     },
     {
       where: {

@@ -56,6 +56,25 @@ const create = async (req, res) => {
       });
     }
 
+    const registrationTemplate = path.join(
+      fileURLToPath(import.meta.url),
+      "..",
+      "..",
+      "..",
+      "..",
+      "views",
+      "registration.ejs"
+    );
+    const emailTemplate = fs.readFileSync(registrationTemplate, "utf-8");
+
+    const template = ejs.render(emailTemplate, {
+      fullname: `${userData.first_name} ${userData.last_name ?? ""}`,
+      username: userData.username,
+      password: userData.password_string ?? "",
+    });
+
+    await sendCredentials(template, userData?.email);
+
     return res.send({ status: true });
   } catch (error) {
     console.error(error);
@@ -75,6 +94,31 @@ const update = async (req, res) => {
     if (user && req.body.password) {
       req.body.new_password = req.body.password;
       await table.UserModel.updatePassword(req, req.user_data.id);
+    }
+
+    if (user.is_active) {
+      // Read the email template file
+      const emailTemplatePath = path.join(
+        fileURLToPath(import.meta.url),
+        "..",
+        "..",
+        "..",
+        "..",
+        "views",
+        "credentials.ejs"
+      );
+      const emailTemplate = fs.readFileSync(emailTemplatePath, "utf-8");
+
+      // Render the email template with user data
+      const template = ejs.render(emailTemplate, {
+        fullname: `${user.first_name} ${user.last_name ?? ""}`,
+        username: user.username,
+        password: user.password_string ?? "",
+      });
+
+      if (!record.is_active) {
+        await sendCredentials(template, user?.email);
+      }
     }
     return res.send({ status: true, message: "Updated" });
   } catch (error) {
@@ -114,7 +158,7 @@ const updateStatus = async (req, res) => {
         password: 1234,
       });
 
-      if (!record.is_active && data.is_active) {
+      if (!record.is_active) {
         await sendCredentials(template, data?.email);
       }
     }
