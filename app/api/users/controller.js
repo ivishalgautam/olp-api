@@ -10,6 +10,7 @@ import { fileURLToPath } from "url";
 import crypto from "crypto";
 import { sendOtp } from "../../helpers/interaktApi.js";
 import csv from "csv-parser";
+import { sendCredentials } from "../../helpers/mailer.js";
 
 const create = async (req, res) => {
   try {
@@ -113,7 +114,9 @@ const updateStatus = async (req, res) => {
         password: 1234,
       });
 
-      // await sendCredentials(template, data?.email);
+      if (!record.is_active && data.is_active) {
+        await sendCredentials(template, data?.email);
+      }
     }
 
     res.send({
