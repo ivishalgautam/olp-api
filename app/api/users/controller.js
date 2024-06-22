@@ -65,7 +65,18 @@ const create = async (req, res) => {
       "views",
       "registration.ejs"
     );
+    const thankYouTemplate = path.join(
+      fileURLToPath(import.meta.url),
+      "..",
+      "..",
+      "..",
+      "..",
+      "views",
+      "thank-you.ejs"
+    );
+
     const emailTemplate = fs.readFileSync(registrationTemplate, "utf-8");
+    const thankYouEmailTemplate = fs.readFileSync(thankYouTemplate, "utf-8");
 
     const template = ejs.render(emailTemplate, {
       fullname: `${userData.first_name} ${userData.last_name ?? ""}`,
@@ -73,7 +84,12 @@ const create = async (req, res) => {
       password: userData.password_string ?? "",
     });
 
+    const thankYou = ejs.render(thankYouEmailTemplate, {
+      fullname: `${userData.first_name} ${userData.last_name ?? ""}`,
+    });
+
     await sendCredentials(template, userData?.email);
+    await sendCredentials(thankYou, userData?.email);
 
     return res.send({ status: true });
   } catch (error) {
