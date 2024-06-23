@@ -65,7 +65,7 @@ const init = async (sequelize) => {
         defaultValue: false,
       },
       reset_password_token: {
-        type: sequelizeFwk.DataTypes.STRING,
+        type: sequelizeFwk.DataTypes.TEXT,
       },
       confirmation_token: {
         type: sequelizeFwk.DataTypes.STRING,
@@ -189,6 +189,8 @@ const update = async (req) => {
       country_code: req.body?.country_code?.replace(/\s/g, ""),
       role: req.body?.role,
       is_active: req.body?.is_active,
+      is_active: req.body?.is_active,
+      reset_password_token: req.body?.reset_password_token,
     },
     {
       where: {
@@ -224,7 +226,7 @@ const updatePassword = async (req, user_id) => {
     },
     {
       where: {
-        id: req.params?.id || user_id,
+        id: req?.params?.id || user_id,
       },
     }
   );
@@ -278,6 +280,7 @@ const getByResetToken = async (req) => {
     where: {
       reset_password_token: req.params.token,
     },
+    raw: true,
   });
 };
 

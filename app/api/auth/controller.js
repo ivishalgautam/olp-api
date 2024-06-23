@@ -6,6 +6,11 @@ import table from "../../db/models.js";
 import authToken from "../../helpers/auth.js";
 import crypto from "crypto";
 import { sendOtp } from "../../helpers/interaktApi.js";
+import ejs from "ejs";
+import fs from "fs";
+import path from "path";
+import { fileURLToPath } from "url";
+import { sendCredentials } from "../../helpers/mailer.js";
 
 const verifyUserCredentials = async (req, res) => {
   let userData;
@@ -114,8 +119,63 @@ const verifyRefreshToken = async (req, res) => {
   return authToken.verifyRefreshToken(req, res);
 };
 
+const sendResetToken = async (req, res) => {
+  try {
+    const record = await table.UserModel.getByPhone(req);
+    if (!record) {
+      return res.code(401).send({ status: false, message: "User not found!" });
+    }
+
+    // console.log({ record });
+
+    const [jwtToken, expiresIn] = authToken.generateAccessToken({
+      id: record.id,
+      username: record.username,
+      fullname: `${record.first_name}  ${
+        record.last_name ? record.last_name : ""
+      }`,
+    });
+
+    console.log({ jwtToken });
+
+    const updateConfirmatiion = await table.UserModel.update({
+      body: { reset_password_token: jwtToken },
+      params: { id: record.id },
+    });
+    if (updateConfirmatiion) {
+      const resetPasswordTemplate = path.join(
+        fileURLToPath(import.meta.url),
+        "..",
+        "..",
+        "..",
+        "..",
+        "views",
+        "reset-password.ejs"
+      );
+      const resetTemplate = fs.readFileSync(resetPasswordTemplate, "utf-8");
+
+      const template = ejs.render(resetTemplate, {
+        fullname: `${record.first_name} ${record.last_name ?? ""}`,
+        token: jwtToken,
+      });
+
+      await sendCredentials(template, record?.email, "Reset password");
+    }
+
+    return res.send({
+      status: true,
+      message:
+        "We have sent an reset password link to your registered email id.",
+    });
+  } catch (error) {
+    console.error(error);
+    return res.code(500).send({ status: false, error });
+  }
+};
+
 export default {
   verifyUserCredentials,
   createNewUser,
   verifyRefreshToken,
+  sendResetToken,
 };

@@ -1,6 +1,6 @@
 import nodemailer from "nodemailer";
 
-export const sendCredentials = async (template, mailTo) => {
+export const sendCredentials = async (template, mailTo, subject) => {
   // Create a transporter object using SMTP transport
   const transporter = nodemailer.createTransport({
     host: process.env.SMTP_SERVER,
@@ -16,7 +16,7 @@ export const sendCredentials = async (template, mailTo) => {
   const mailOptions = {
     from: process.env.SMTP_EMAIL, // Sender address
     to: mailTo, // List of receivers
-    subject: "Credential Details For Onlineparts.shop", // Subject line
+    subject: subject ?? "Credential Details For Onlineparts.shop", // Subject line
     html: template, // Rendered email template
   };
 

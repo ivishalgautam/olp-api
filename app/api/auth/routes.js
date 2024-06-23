@@ -17,7 +17,8 @@ export default async function routes(fastify, options) {
   );
   fastify.post("/refresh", {}, controller.verifyRefreshToken);
   fastify.post("/username", {}, userController.checkUsername);
-  fastify.post("/:token", {}, userController.resetPassword);
+  fastify.post("/reset-password", {}, controller.sendResetToken);
+  fastify.put("/reset-password", {}, userController.resetPassword);
   fastify.post(
     "/otp/send",
     { schema: schema.sendOtpSchema },

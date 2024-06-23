@@ -4,13 +4,14 @@ import table from "../../db/models.js";
 import hash from "../../lib/encryption/index.js";
 import ejs from "ejs";
 import fs from "fs";
-import path, { resolve } from "path";
-// import { sendCredentials } from "../../helpers/mailer.js";
+import path from "path";
 import { fileURLToPath } from "url";
 import crypto from "crypto";
 import { sendOtp } from "../../helpers/interaktApi.js";
 import csv from "csv-parser";
 import { sendCredentials } from "../../helpers/mailer.js";
+import authToken from "../../helpers/auth.js";
+import { ValidationErrorItemOrigin } from "sequelize";
 
 const create = async (req, res) => {
   try {
@@ -291,12 +292,31 @@ const getUser = async (req, res) => {
 
 const resetPassword = async (req, res) => {
   try {
-    const token = await table.UserModel.getByResetToken(req);
+    const token = await table.UserModel.getByResetToken({
+      ...req,
+      params: {
+        token: req.body.token,
+      },
+    });
+
     if (!token) {
-      return res.code(401).send({ status: false, message: "invalid url" });
+      return res.code(401).send({ status: false, message: "Invalid url!" });
     }
 
-    await table.UserModel.updatePassword(req, token.id);
+    const updateConfirmation = await table.UserModel.updatePassword(
+      req,
+      token.id
+    );
+
+    if (updateConfirmation) {
+      await table.UserModel.update({
+        params: { id: token.id },
+        body: {
+          reset_password_token: "",
+        },
+      });
+    }
+
     return res.send({
       status: true,
       message: "Password reset successfully!",
