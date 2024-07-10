@@ -58,10 +58,7 @@ const updateById = async (req, res) => {
 
 const getBySlug = async (req, res) => {
   try {
-    let slug = slugify(req.body.title, { lower: true });
-    req.body.slug = slug;
-
-    const record = await table.CategoryModel.getBySlug(req, req.params.slug);
+    const record = await table.CategoryModel.getBySlug(req);
 
     if (!record) {
       return res
