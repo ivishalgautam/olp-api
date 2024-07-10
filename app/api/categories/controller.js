@@ -27,6 +27,9 @@ const create = async (req, res) => {
 
 const updateById = async (req, res) => {
   try {
+    let slug = slugify(req.body.name, { lower: true });
+    req.body.slug = slug;
+
     const record = await table.CategoryModel.getById(req, req.params.id);
 
     if (!record) {
@@ -55,6 +58,9 @@ const updateById = async (req, res) => {
 
 const getBySlug = async (req, res) => {
   try {
+    let slug = slugify(req.body.title, { lower: true });
+    req.body.slug = slug;
+
     const record = await table.CategoryModel.getBySlug(req, req.params.slug);
 
     if (!record) {
