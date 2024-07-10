@@ -65,7 +65,7 @@ const getBySlug = async (req, res) => {
 
     res.send({
       status: true,
-      data: await table.CategoryModel.getById(req, req.params.id),
+      data: await table.CategoryModel.getBySlug(req),
     });
   } catch (error) {
     console.error(error);
