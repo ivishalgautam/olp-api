@@ -29,6 +29,18 @@ const init = async (sequelize) => {
         allowNull: false,
       },
       is_featured: { type: DataTypes.BOOLEAN, deafaultValue: false },
+      meta_title: {
+        type: DataTypes.TEXT,
+        defaultValue: "",
+      },
+      meta_description: {
+        type: DataTypes.TEXT,
+        defaultValue: "",
+      },
+      meta_keywords: {
+        type: DataTypes.TEXT,
+        defaultValue: "",
+      },
     },
     {
       createdAt: "created_at",
@@ -45,6 +57,9 @@ const create = async (req) => {
     image: req.body.image,
     slug: req.body.slug,
     is_featured: req.body.is_featured,
+    meta_title: req.body?.meta_title,
+    meta_description: req.body?.meta_description,
+    meta_keywords: req.body?.meta_keywords,
   });
 };
 
@@ -68,6 +83,9 @@ const update = async (req, id) => {
       image: req.body.image,
       slug: req.body.slug,
       is_featured: req.body.is_featured,
+      meta_title: req.body?.meta_title,
+      meta_description: req.body?.meta_description,
+      meta_keywords: req.body?.meta_keywords,
     },
     {
       where: {
