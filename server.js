@@ -62,6 +62,7 @@ export default (app) => {
 
   // categories
   app.get("/v1/categories", {}, categoriesController.get);
+  fastify.get("/v1/categories/:slug", {}, categoriesController.getBySlug);
 
   // brand
   app.get("/v1/brands", {}, brandsController.get);
