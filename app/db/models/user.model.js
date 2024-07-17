@@ -83,7 +83,7 @@ const init = async (sequelize) => {
 const create = async (req) => {
   const hash_password = hash.encrypt(req.body.password);
   return await UserModel.create({
-    username: req.body.username,
+    username: String(req.body.username).toLowerCase(),
     password: hash_password,
     first_name: req.body.first_name,
     last_name: req.body.last_name,
@@ -159,7 +159,9 @@ const getByPhone = async (req, phone) => {
 const getByUsername = async (req, record = undefined) => {
   return await UserModel.findOne({
     where: {
-      username: req?.body?.username || record?.user?.username,
+      username:
+        String(req?.body?.username).toLowerCase() ||
+        String(record?.user?.username).toLowerCase(),
     },
     attributes: [
       "id",

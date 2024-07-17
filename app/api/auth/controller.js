@@ -136,8 +136,6 @@ const sendResetToken = async (req, res) => {
       }`,
     });
 
-    console.log({ jwtToken });
-
     const updateConfirmatiion = await table.UserModel.update({
       body: { reset_password_token: jwtToken },
       params: { id: record.id },
