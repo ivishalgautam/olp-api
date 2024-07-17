@@ -21,6 +21,16 @@ const init = async (sequelize) => {
         type: sequelizeFwk.DataTypes.STRING,
         allowNull: false,
         unique: true,
+        validate: {
+          is: /^[a-z0-9]{3,16}$/,
+          notEmpty: true,
+          len: [3, 16],
+          isLowercase(value) {
+            if (value.toLowerCase() !== value) {
+              throw new Error("Username must be in lowercase");
+            }
+          },
+        },
       },
       email: {
         type: sequelizeFwk.DataTypes.STRING,
