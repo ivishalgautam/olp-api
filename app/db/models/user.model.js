@@ -111,6 +111,7 @@ const get = async () => {
 };
 
 const getById = async (req, user_id) => {
+  console.log({ req, user_id });
   return await UserModel.findOne({
     where: {
       id: req?.params?.id || user_id,
