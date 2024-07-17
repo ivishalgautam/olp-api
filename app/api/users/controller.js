@@ -277,9 +277,9 @@ const checkUsername = async (req, res) => {
 };
 
 const getUser = async (req, res) => {
-  console.log({ user: req.user_data });
   try {
     const record = await table.UserModel.getById(undefined, req.user_data.id);
+
     if (!record) {
       return res.code(401).send({ status: false, messaege: "invalid token" });
     }
@@ -287,7 +287,7 @@ const getUser = async (req, res) => {
     return res.send(req.user_data);
   } catch (error) {
     console.error(error);
-    return res.code(500).send({ status: false, error });
+    return res.code(500).send({ status: false, error, message: error.message });
   }
 };
 

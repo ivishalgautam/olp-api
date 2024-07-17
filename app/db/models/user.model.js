@@ -161,8 +161,8 @@ const getByUsername = async (req, record = undefined) => {
   return await UserModel.findOne({
     where: {
       username:
-        String(req?.body?.username).toLowerCase() ||
-        String(record?.user?.username).toLowerCase(),
+        req?.body?.username.toLowerCase() ||
+        record?.user?.username.toLowerCase(),
     },
     attributes: [
       "id",

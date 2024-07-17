@@ -19,7 +19,6 @@ const storage = multer.diskStorage({
 const upload = multer({ storage: storage });
 
 export default async function routes(fastify, options) {
-  fastify.addHook("onRequest", jwtVerify.verifyToken);
   fastify.post("/:id/change-password", {}, controller.updatePassword);
   fastify.post(
     "/import",
