@@ -53,6 +53,7 @@ const constants = {
     TEMP_CART_TABLE: "temp_carts",
     QUERY_TABLE: "queries",
     OTP_TABLE: "otps",
+    BLOG_TABLE: "blogs",
   },
   bcrypt: {
     SALT_ROUNDS: 10,

@@ -432,7 +432,7 @@ const searchProducts = async (req) => {
       OR '%${q}%' = ANY(p.tags) 
       OR EXISTS (
         SELECT 1 
-        FROM unnest(p.tags) AS tag 
+        FROM unnest(p.tags) AS tag
         WHERE tag ILIKE '%${q}%'
       )
   `;

@@ -10,6 +10,7 @@ import enquiryItemModel from "./models/enquiry-item.model.js";
 import tempCartModel from "./models/temp-cart.model.js";
 import queryModel from "./models/query.model.js";
 import otpModel from "./models/otp.model.js";
+import blogModel from "./models/blog.model.js";
 
 export default {
   UserModel: userModel,
@@ -23,4 +24,5 @@ export default {
   TempCartModel: tempCartModel,
   QueryModel: queryModel,
   OtpModel: otpModel,
+  BlogModel: blogModel,
 };
