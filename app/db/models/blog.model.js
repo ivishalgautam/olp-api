@@ -61,7 +61,7 @@ const init = async (sequelize) => {
       },
       posted_on: {
         type: DataTypes.DATE,
-        allowNull: true,
+        defaultValue: new Date(),
       },
     },
     {
@@ -156,7 +156,7 @@ const update = async (req, id) => {
       meta_description: req.body.meta_description,
       meta_keywords: req.body.meta_keywords,
       faq: req.body.faq,
-      posted_on: req.body.posted_on,
+      posted_on: req.body.posted_on ?? new Date(),
     },
     {
       where: {
