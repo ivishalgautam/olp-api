@@ -59,6 +59,10 @@ const init = async (sequelize) => {
         type: DataTypes.JSONB,
         defaultValue: [],
       },
+      posted_on: {
+        type: DataTypes.DATE,
+        allowNull: true,
+      },
     },
     {
       createdAt: "created_at",
@@ -83,6 +87,7 @@ const create = async (req) => {
       meta_description: req.body.meta_description,
       meta_keywords: req.body.meta_keywords,
       faq: req.body.faq,
+      posted_on: req.body.posted_on,
     },
     { returning: true, raw: true }
   );
@@ -109,6 +114,7 @@ const get = async (req) => {
       b.slug,
       b.short_description,
       b.created_at,
+      b.posted_on,
       b.updated_at,
       CASE
           WHEN COUNT(cat.id) > 0 THEN json_agg(
@@ -150,6 +156,7 @@ const update = async (req, id) => {
       meta_description: req.body.meta_description,
       meta_keywords: req.body.meta_keywords,
       faq: req.body.faq,
+      posted_on: req.body.posted_on,
     },
     {
       where: {
@@ -209,7 +216,8 @@ const getRelatedBlogs = async (req, id) => {
       'short_description', b2.short_description,
       'image', b2.image,
       'slug', b2.slug,
-      'created_at', b2.created_at
+      'created_at', b2.created_at,
+      'posted_on', b2.posted_on
     )) as blogs
     FROM blogs b1
     JOIN blogs b2 ON b1.id <> b2.id
