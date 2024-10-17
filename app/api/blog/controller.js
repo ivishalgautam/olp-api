@@ -17,8 +17,6 @@ const update = async (req, res) => {
     const record = await table.BlogModel.getById(req);
     if (!record) return res.code(404).send({ message: "Blog not found!" });
 
-    console.log(req.body);
-
     req.body.slug = slugify(req.body.slug ? req.body.slug : req.body.title);
     res.send(await table.BlogModel.update(req));
   } catch (error) {
@@ -56,9 +54,17 @@ const getRelatedBlogs = async (req, res) => {
     const record = await table.BlogModel.getById(req);
     if (!record) return res.code(404).send({ message: "Blog not found!" });
 
-    console.log({ blogs: await table.BlogModel.getRelatedBlogs(req) });
-
     res.send(await table.BlogModel.getRelatedBlogs(req));
+  } catch (error) {
+    console.error(error);
+    res.code(500).send({ message: error.message, error });
+  }
+};
+
+const getRecentBlogs = async (req, res) => {
+  try {
+    const data = await table.BlogModel.getRecentBlogs(req.query.limit);
+    res.send(data);
   } catch (error) {
     console.error(error);
     res.code(500).send({ message: error.message, error });
@@ -94,4 +100,5 @@ export default {
   deleteById: deleteById,
   get: get,
   getRelatedBlogs: getRelatedBlogs,
+  getRecentBlogs: getRecentBlogs,
 };

@@ -108,14 +108,7 @@ const get = async (req) => {
 
   let query = `
   SELECT 
-      b.id,
-      b.title,
-      b.image,
-      b.slug,
-      b.short_description,
-      b.created_at,
-      b.posted_on,
-      b.updated_at,
+      b.id, b.title, b.image, b.slug, b.short_description, b.created_at, b.posted_on, b.updated_at, 
       CASE
           WHEN COUNT(cat.id) > 0 THEN json_agg(
               json_build_object(
@@ -130,13 +123,12 @@ const get = async (req) => {
       ${constants.models.BLOG_TABLE} b
       LEFT JOIN categories cat ON cat.id = ANY(b.categories)
       ${whereClause}
-      GROUP BY
-      b.id
-      ORDER BY b.created_at DESC
+    GROUP BY b.id
+    ORDER BY b.created_at DESC
   `;
 
   return await BlogModel.sequelize.query(query, {
-    replacements: {},
+    replacements: { ...queryParams },
     type: QueryTypes.SELECT,
     raw: true,
   });
@@ -207,6 +199,27 @@ const getBySlug = async (req, slug) => {
   });
 };
 
+const getRecentBlogs = async (limit) => {
+  let query = `
+  SELECT 
+      id, 
+      title,
+      short_description,
+      image, 
+      slug, 
+      created_at,
+      posted_on
+    FROM blogs
+    LIMIT :limit
+  `;
+
+  return await BlogModel.sequelize.query(query, {
+    replacements: { limit },
+    type: QueryTypes.SELECT,
+    raw: true,
+  });
+};
+
 const getRelatedBlogs = async (req, id) => {
   let query = `
  SELECT 
@@ -249,4 +262,5 @@ export default {
   getBySlug: getBySlug,
   deleteById: deleteById,
   getRelatedBlogs: getRelatedBlogs,
+  getRecentBlogs: getRecentBlogs,
 };

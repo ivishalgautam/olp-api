@@ -28,8 +28,6 @@ const create = async (req, res) => {
 };
 
 const updateById = async (req, res) => {
-  console.log(req.body);
-
   try {
     let slug = slugify(req.body.title, { lower: true });
     req.body.slug = slug;

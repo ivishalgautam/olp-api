@@ -51,7 +51,6 @@ const deleteById = async (req, res) => {
   try {
     const record = await table.TempCartModel.getById(req);
     await table.TempCartModel.deleteById(req);
-    // console.log({ record });
     res.send({ status: true, message: "Item removed", data: record });
   } catch (error) {
     console.error(error);
