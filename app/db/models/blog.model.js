@@ -210,6 +210,7 @@ const getRecentBlogs = async (limit) => {
       created_at,
       posted_on
     FROM blogs
+    ORDER BY created_at DESC
     LIMIT :limit
   `;
 
