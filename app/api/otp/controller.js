@@ -3,7 +3,12 @@ import constants from "../../lib/constants/index.js";
 import table from "../../db/models.js";
 import moment from "moment";
 import crypto from "crypto";
-import { sendOtp } from "../../helpers/interaktApi.js";
+// import { sendOtp } from "../../helpers/interaktApi.js";
+import { fileURLToPath } from "url";
+import ejs from "ejs";
+import fs from "fs";
+import path from "path";
+import { sendCredentials } from "../../helpers/mailer.js";
 
 const create = async (req, res) => {
   try {
@@ -12,29 +17,45 @@ const create = async (req, res) => {
     const otp = crypto.randomInt(100000, 999999);
     const record = await table.OtpModel.getByPhone(req.body.phone);
 
-    const resp = await sendOtp({
-      country_code: user.country_code,
-      first_name: user.first_name,
-      last_name: user.last_name,
-      mobile_number: user.mobile_number,
+    if (record) {
+      await table.OtpModel.update({
+        phone: req.body.phone,
+        otp: otp,
+      });
+    } else {
+      await table.OtpModel.create({
+        phone: req.body.phone,
+        otp: otp,
+      });
+    }
+
+    const otpSendTemplate = path.join(
+      fileURLToPath(import.meta.url),
+      "..",
+      "..",
+      "..",
+      "..",
+      "views",
+      "otp.ejs"
+    );
+    const otpTemplate = fs.readFileSync(otpSendTemplate, "utf-8");
+
+    const template = ejs.render(otpTemplate, {
+      fullname: `${user.first_name} ${user.last_name ?? ""}`,
       otp: otp,
     });
 
-    if (resp.data.result) {
-      if (record) {
-        await table.OtpModel.update({
-          phone: req.body.phone,
-          otp: otp,
-        });
-      } else {
-        await table.OtpModel.create({
-          phone: req.body.phone,
-          otp: otp,
-        });
-      }
-    }
+    await sendCredentials(template, user.email, "OTP");
 
-    res.send({ status: true, message: "Otp sent" });
+    // const resp = await sendOtp({
+    //   country_code: user.country_code,
+    //   first_name: user.first_name,
+    //   last_name: user.last_name,
+    //   mobile_number: user.mobile_number,
+    //   otp: otp,
+    // });
+
+    res.send({ status: true, message: "Otp sent please check your mail." });
   } catch (error) {
     console.error(error);
     res.code(500).send({ status: false, error });

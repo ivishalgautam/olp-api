@@ -7,11 +7,9 @@ import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
 import crypto from "crypto";
-import { sendOtp } from "../../helpers/interaktApi.js";
+// import { sendOtp } from "../../helpers/interaktApi.js";
 import csv from "csv-parser";
 import { sendCredentials } from "../../helpers/mailer.js";
-import authToken from "../../helpers/auth.js";
-import { ValidationErrorItemOrigin } from "sequelize";
 
 const create = async (req, res) => {
   try {
@@ -42,20 +40,18 @@ const create = async (req, res) => {
 
     const userData = await table.UserModel.getById(req, data.dataValues.id);
 
-    const resp = await sendOtp({
-      country_code: userData?.country_code,
-      mobile_number: userData?.mobile_number,
-      first_name: userData?.first_name,
-      last_name: userData?.last_name,
-      otp,
-    });
+    // const resp = await sendOtp({
+    //   country_code: userData?.country_code,
+    //   mobile_number: userData?.mobile_number,
+    //   first_name: userData?.first_name,
+    //   last_name: userData?.last_name,
+    //   otp,
+    // });
 
-    if (resp.data.result) {
-      await table.OtpModel.create({
-        phone: userData.mobile_number,
-        otp: otp,
-      });
-    }
+    await table.OtpModel.create({
+      phone: userData.mobile_number,
+      otp: otp,
+    });
 
     const registrationTemplate = path.join(
       fileURLToPath(import.meta.url),
@@ -75,9 +71,19 @@ const create = async (req, res) => {
       "views",
       "thank-you.ejs"
     );
+    const otpSendTemplate = path.join(
+      fileURLToPath(import.meta.url),
+      "..",
+      "..",
+      "..",
+      "..",
+      "views",
+      "otp.ejs"
+    );
 
     const emailTemplate = fs.readFileSync(registrationTemplate, "utf-8");
     const thankYouEmailTemplate = fs.readFileSync(thankYouTemplate, "utf-8");
+    const otpTemplate = fs.readFileSync(otpSendTemplate, "utf-8");
 
     const template = ejs.render(emailTemplate, {
       fullname: `${userData.first_name} ${userData.last_name ?? ""}`,
@@ -89,8 +95,14 @@ const create = async (req, res) => {
       fullname: `${userData.first_name} ${userData.last_name ?? ""}`,
     });
 
+    const otpSend = ejs.render(otpTemplate, {
+      fullname: `${userData.first_name} ${userData.last_name ?? ""}`,
+      otp: otp,
+    });
+
     await sendCredentials(template, userData?.email);
     await sendCredentials(thankYou, userData?.email);
+    await sendCredentials(otpSend, userData?.email);
 
     return res.send({ status: true });
   } catch (error) {
