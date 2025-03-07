@@ -36,17 +36,32 @@ const verifyUserCredentials = async (req, res) => {
       return res.code(400).send({ message: "Invalid credentials" });
     }
 
-    // if (userData.role !== "admin" && !userData.is_verified) {
-    //   const otp = crypto.randomInt(100000, 999999);
+    if (userData.role !== "admin" && !userData.is_verified) {
+      //   const otp = crypto.randomInt(100000, 999999);
 
-    //   await sendOtp({
-    //     country_code: userData?.country_code,
-    //     mobile_number: userData?.mobile_number,
-    //     first_name: userData?.first_name,
-    //     last_name: userData?.last_name,
-    //     otp,
-    //   });
-    // }
+      //   await sendOtp({
+      //     country_code: userData?.country_code,
+      //     mobile_number: userData?.mobile_number,
+      //     first_name: userData?.first_name,
+      //     last_name: userData?.last_name,
+      //     otp,
+      //   });
+      const otpSendTemplate = path.join(
+        fileURLToPath(import.meta.url),
+        "..",
+        "..",
+        "..",
+        "..",
+        "views",
+        "otp.ejs"
+      );
+      const otpTemplate = fs.readFileSync(otpSendTemplate, "utf-8");
+      const otpSend = ejs.render(otpTemplate, {
+        fullname: `${userData.first_name} ${userData.last_name ?? ""}`,
+        otp: otp,
+      });
+      await sendCredentials(otpSend, userData?.email);
+    }
 
     const [jwtToken, expiresIn] = authToken.generateAccessToken(userData);
     const refreshToken = authToken.generateRefreshToken(userData);
