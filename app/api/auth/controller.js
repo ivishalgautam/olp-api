@@ -46,6 +46,7 @@ const verifyUserCredentials = async (req, res) => {
       //     last_name: userData?.last_name,
       //     otp,
       //   });
+      const otp = crypto.randomInt(100000, 999999);
       const otpSendTemplate = path.join(
         fileURLToPath(import.meta.url),
         "..",
