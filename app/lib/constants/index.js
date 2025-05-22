@@ -54,6 +54,7 @@ const constants = {
     QUERY_TABLE: "queries",
     OTP_TABLE: "otps",
     BLOG_TABLE: "blogs",
+    REGISTRATION_TABLE: "registrations",
   },
   bcrypt: {
     SALT_ROUNDS: 10,

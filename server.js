@@ -19,7 +19,10 @@ import brandsController from "./app/api/brand/controller.js";
 import queryController from "./app/api/query/controller.js";
 import userController from "./app/api/users/controller.js";
 import blogController from "./app/api/blog/controller.js";
+import registrationController from "./app/api/registration/controller.js";
+
 import querySchema from "./app/api/query/schema.js";
+import registrationSchema from "./app/api/registration/schema.js";
 /*
   Register External packages, routes, database connection
 */
@@ -73,6 +76,13 @@ export default (app) => {
     "/v1/queries",
     { schema: querySchema.create },
     queryController.create
+  );
+
+  // registrations
+  app.post(
+    "/v1/registrations",
+    { schema: registrationSchema.create },
+    registrationController.create
   );
 
   // blogs

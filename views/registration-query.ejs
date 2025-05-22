@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Welcome to Onlineparts.shop</title>
+    <style type="text/css">
+      body {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+      }
+      .mytemplate {
+        border: 1px solid #efefef;
+        width: 800px;
+        margin: 20px auto;
+        border-radius: 8px;
+        background: white;
+        overflow: hidden;
+      }
+      .template-title {
+        background: #092143;
+        padding: 20px 0;
+      }
+      .template-title img {
+        width: 70px;
+      }
+      .template-title h2 {
+        font-family: arial;
+        font-weight: bold;
+        color: white;
+      }
+      p,
+      li {
+        font-size: 16px;
+      }
+    </style>
+  </head>
+  <body style="background: #efefef; padding: 20px 0">
+    <div class="mytemplate">
+      <div
+        class="logo"
+        style="
+          width: 100%;
+          display: flex;
+          justify-content: center;
+          align-items: center;
+        "
+      >
+        <img
+          src="https://onlineparts.shop/logo.png"
+          style="margin: 10px auto; width: 110px; margin-top: 20px"
+        />
+      </div>
+
+      <div class="template-title" style="width: 100%">
+        <h2 style="text-align: center; color: #f4a51c">
+          Credential Details For Onlineparts.shop
+        </h2>
+      </div>
+
+      <div class="template-content" style="padding: 20px">
+        <p>Dear <%= name %>,</p>
+        <p>Greetings!</p>
+        <p>
+          Welcome to OnLine Parts<strong> (OLP)</strong> – your go-to platform
+          for earthmoving spare parts in India. We’re excited to have you
+          onboard!
+        </p>
+
+        <p><strong>Your Registered Information:</strong></p>
+        <ul>
+          <li><strong>Name:</strong> <%= name %></li>
+          <li><strong>Email:</strong> <%= email %></li>
+          <li><strong>Phone:</strong> <%= phone %></li>
+          <li><strong>Industry:</strong> <%= industry %></li>
+        </ul>
+      </div>
+
+      <div class="footer" style="background: #092143; padding: 20px">
+        <h3 style="color: white; text-align: center; margin-bottom: 0">
+          Connect With Us On
+        </h3>
+        <div
+          style="width: 40px; height: 3px; background: white; margin: 10px auto"
+        ></div>
+        <div style="text-align: center">
+          <a
+            href="https://www.facebook.com/onlinepartsearthmoving"
+            style="margin-right: 8px"
+          >
+            <img
+              src="https://onlineparts.shop/facebook.png"
+              style="width: 30px"
+            />
+          </a>
+          <a
+            href="https://instagram.com/onlineparts001"
+            style="margin-right: 8px"
+          >
+            <img
+              src="https://onlineparts.shop/instagram.png"
+              style="width: 30px"
+            />
+          </a>
+          <a href="https://www.linkedin.com/company/86456741/admin/">
+            <img
+              src="https://onlineparts.shop/linkedin.png"
+              style="width: 30px"
+            />
+          </a>
+        </div>
+        <p style="color: white; text-align: center">
+          &copy; All Rights Reserved by Onlineparts.shop
+        </p>
+      </div>
+    </div>
+  </body>
+</html>

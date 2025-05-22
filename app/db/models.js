@@ -11,6 +11,7 @@ import tempCartModel from "./models/temp-cart.model.js";
 import queryModel from "./models/query.model.js";
 import otpModel from "./models/otp.model.js";
 import blogModel from "./models/blog.model.js";
+import registrationModel from "./models/registration.model.js";
 
 export default {
   UserModel: userModel,
@@ -25,4 +26,5 @@ export default {
   QueryModel: queryModel,
   OtpModel: otpModel,
   BlogModel: blogModel,
+  RegistrationModel: registrationModel,
 };
